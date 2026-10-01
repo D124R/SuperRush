@@ -1,15 +1,14 @@
-# 🎮 Super Rush
+# Super Rush
 
-> Um jogo 2D de speedrun em pixel art inspirado na série de jogos de plataforma do Clescio Espindola
+Um jogo original de speedrun 2D em pixel art, feito com Godot 4. A proposta mistura plataformas, obstáculos, atalhos e desafios de precisão.
 
 ## 📖 Sobre o projeto
 
-**Super Rush** é o meu segundo jogo desenvolvido utilizando a engine Godot Engine.  
-O projeto é um jogo de plataforma 2D focado em velocidade, precisão e fases desafiadoras.
+**Super Rush** é um jogo de plataforma 2D focado em velocidade, precisão e fases desafiadoras.
 
 O objetivo é completar cada fase no menor tempo possível, explorando movimentação rápida e controles responsivos.
 
-O visual do jogo utiliza pixel art com inspiração retrô clássica, trazendo a sensação dos antigos jogos de plataforma 2D.
+O visual usa pixel art de estilo retrô e os recursos incluídos nos pacotes de arte do projeto.
 
 ---
 
@@ -24,12 +23,20 @@ O visual do jogo utiliza pixel art com inspiração retrô clássica, trazendo a
 
 ## 🎯 Funcionalidades
 
-- Movimentação rápida e fluida
-- Sistema de speedrun
-- Cronômetro de tempo
-- Plataforma 2D com física
-- Pixel art retrô
-- Fases desafiadoras
-- Reinício rápido de fase
+- Movimento com aceleração e desaceleração
+- Pulo variável, tolerância de borda (coyote time) e buffer de pulo
+- Dash com recarga
+- Cronômetro e recorde local por fase
+- Moedas, espinhos, checkpoint e linha de chegada
+- Reinício rápido da tentativa
+
+## Controles
+
+- **A/D** ou **setas:** mover
+- **Espaço**, **W** ou **seta para cima:** pular
+- **Shift** ou **X:** dash
+- **R:** reiniciar a fase
+
+O cronômetro começa no primeiro movimento. Os recordes ficam salvos localmente no arquivo de configuração do usuário da Godot.
 
 ---

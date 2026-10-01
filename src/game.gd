@@ -1,0 +1,389 @@
+extends Node2D
+
+const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
+const BACKGROUND_TEXTURE: Texture2D = preload("res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/_Complete_static_BG_(288 x 208).png")
+const COIN_TEXTURE: Texture2D = preload("res://assets/Mini FX, Items & UI/Mini FX, Items & UI/Common Pick-ups/Coin (16 x 16).png")
+const RECORD_PATH: String = "user://super_rush_records.cfg"
+const FINISH_X: float = 2940.0
+
+@onready var level: Node2D = $Level
+
+var player: SuperRushPlayer
+var timer_label: Label
+var stats_label: Label
+var status_label: Label
+var best_label: Label
+var elapsed_time: float = 0.0
+var best_time: float = 0.0
+var death_count: int = 0
+var coin_count: int = 0
+var checkpoint_position: Vector2 = Vector2(48.0, 208.0)
+var timer_running: bool = false
+var run_finished: bool = false
+var animated_coins: Array[Sprite2D] = []
+
+
+func _ready() -> void:
+	_setup_input()
+	_load_record()
+	_create_background()
+	_build_level()
+	_spawn_player()
+	_create_hud()
+
+
+func _process(delta: float) -> void:
+	if timer_running and not run_finished:
+		elapsed_time += delta
+		timer_label.text = "TEMPO  %s" % _format_time(elapsed_time)
+
+	var coin_frame: int = int(Time.get_ticks_msec() / 150) % 4
+	for coin_sprite in animated_coins:
+		if is_instance_valid(coin_sprite):
+			coin_sprite.frame = coin_frame
+
+	if player != null and player.global_position.y > 310.0:
+		_respawn_player()
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
+		get_tree().reload_current_scene()
+
+
+func _setup_input() -> void:
+	_add_action("move_left", [KEY_A, KEY_LEFT])
+	_add_action("move_right", [KEY_D, KEY_RIGHT])
+	_add_action("jump", [KEY_SPACE, KEY_W, KEY_UP])
+	_add_action("dash", [KEY_SHIFT, KEY_X])
+
+
+func _add_action(action_name: StringName, keys: Array[int]) -> void:
+	if not InputMap.has_action(action_name):
+		InputMap.add_action(action_name)
+	for key_code in keys:
+		var key_event := InputEventKey.new()
+		key_event.physical_keycode = key_code
+		if not InputMap.action_has_event(action_name, key_event):
+			InputMap.action_add_event(action_name, key_event)
+
+
+func _load_record() -> void:
+	var config := ConfigFile.new()
+	if config.load(RECORD_PATH) == OK:
+		best_time = float(config.get_value("records", "grassland", 0.0))
+
+
+func _save_record() -> void:
+	var config := ConfigFile.new()
+	var load_error: Error = config.load(RECORD_PATH)
+	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
+		push_warning("Nao foi possivel carregar o arquivo de recordes: %s" % error_string(load_error))
+		return
+	config.set_value("records", "grassland", best_time)
+	var save_error: Error = config.save(RECORD_PATH)
+	if save_error != OK:
+		push_warning("Nao foi possivel salvar o recorde: %s" % error_string(save_error))
+
+
+func _create_background() -> void:
+	var background_layer := CanvasLayer.new()
+	background_layer.layer = -1
+	add_child(background_layer)
+
+	var background := TextureRect.new()
+	background.texture = BACKGROUND_TEXTURE
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_SCALE
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	background_layer.add_child(background)
+
+
+func _build_level() -> void:
+	var ground_segments: Array[Vector3] = [
+		Vector3(0, 500, 220),
+		Vector3(560, 310, 220),
+		Vector3(930, 270, 220),
+		Vector3(1260, 300, 220),
+		Vector3(1620, 310, 220),
+		Vector3(1990, 270, 220),
+		Vector3(2320, 700, 220),
+	]
+	for segment in ground_segments:
+		_add_platform(segment.x, segment.y, segment.z)
+
+	var shortcut_platforms: Array[Vector3] = [
+		Vector3(485, 68, 178),
+		Vector3(810, 72, 166),
+		Vector3(1110, 72, 178),
+		Vector3(1485, 82, 162),
+		Vector3(1875, 72, 174),
+		Vector3(2215, 72, 164),
+	]
+	for platform in shortcut_platforms:
+		_add_platform(platform.x, platform.y, platform.z)
+
+	var spike_rows: Array[Vector3] = [
+		Vector3(260, 42, 220),
+		Vector3(680, 42, 220),
+		Vector3(1000, 42, 220),
+		Vector3(1320, 42, 220),
+		Vector3(1720, 42, 220),
+		Vector3(2105, 48, 220),
+		Vector3(2490, 48, 220),
+		Vector3(2740, 42, 220),
+	]
+	for spikes in spike_rows:
+		_add_spikes(spikes.x, spikes.y, spikes.z)
+
+	var coin_positions: Array[Vector2] = [
+		Vector2(150, 190), Vector2(190, 174), Vector2(230, 190),
+		Vector2(390, 150), Vector2(430, 150), Vector2(520, 145),
+		Vector2(620, 190), Vector2(720, 150), Vector2(850, 138),
+		Vector2(960, 190), Vector2(1080, 150), Vector2(1160, 145),
+		Vector2(1360, 190), Vector2(1440, 140), Vector2(1530, 135),
+		Vector2(1650, 190), Vector2(1810, 190), Vector2(1910, 145),
+		Vector2(2050, 190), Vector2(2170, 135), Vector2(2260, 140),
+		Vector2(2400, 190), Vector2(2590, 190), Vector2(2810, 190),
+	]
+	for coin_position in coin_positions:
+		_add_coin(coin_position)
+
+	_add_checkpoint(Vector2(1450, 190))
+	_add_finish()
+
+
+func _add_platform(start: float, width: float, top: float) -> void:
+	var platform := StaticBody2D.new()
+	platform.position = Vector2(start + width * 0.5, top + 9.0)
+	level.add_child(platform)
+
+	var collision := CollisionShape2D.new()
+	var rectangle := RectangleShape2D.new()
+	rectangle.size = Vector2(width, 18.0)
+	collision.shape = rectangle
+	platform.add_child(collision)
+
+	var dirt := Polygon2D.new()
+	dirt.polygon = PackedVector2Array([
+		Vector2(-width * 0.5, -9), Vector2(width * 0.5, -9),
+		Vector2(width * 0.5, 9), Vector2(-width * 0.5, 9),
+	])
+	dirt.color = Color("#a85b42")
+	platform.add_child(dirt)
+
+	var grass := Polygon2D.new()
+	grass.polygon = PackedVector2Array([
+		Vector2(-width * 0.5, -9), Vector2(width * 0.5, -9),
+		Vector2(width * 0.5, -4), Vector2(-width * 0.5, -4),
+	])
+	grass.color = Color("#57c86c")
+	platform.add_child(grass)
+
+	var trim := Polygon2D.new()
+	trim.polygon = PackedVector2Array([
+		Vector2(-width * 0.5, -4), Vector2(width * 0.5, -4),
+		Vector2(width * 0.5, -2), Vector2(-width * 0.5, -2),
+	])
+	trim.color = Color("#318c55")
+	platform.add_child(trim)
+
+
+func _add_spikes(start: float, width: float, top: float) -> void:
+	var spikes := Area2D.new()
+	spikes.position = Vector2(start, top - 12.0)
+	spikes.body_entered.connect(_on_hazard_entered)
+	level.add_child(spikes)
+
+	var collision := CollisionShape2D.new()
+	collision.position = Vector2(width * 0.5, 6.0)
+	var rectangle := RectangleShape2D.new()
+	rectangle.size = Vector2(width, 12.0)
+	collision.shape = rectangle
+	spikes.add_child(collision)
+
+	var spike_art := Polygon2D.new()
+	var spike_width: float = 12.0
+	var x: float = 0.0
+	while x < width:
+		var spike_tip := Polygon2D.new()
+		spike_tip.polygon = PackedVector2Array([
+			Vector2(0.0, 12.0),
+			Vector2(minf(spike_width * 0.5, width - x), 0.0),
+			Vector2(minf(spike_width, width - x), 12.0),
+		])
+		spike_tip.position.x = x
+		spike_tip.color = Color("#e65858")
+		spikes.add_child(spike_tip)
+		x += spike_width
+
+
+func _add_coin(at_position: Vector2) -> void:
+	var coin := Area2D.new()
+	coin.position = at_position
+	coin.body_entered.connect(_on_coin_body_entered.bind(coin))
+	level.add_child(coin)
+
+	var collision := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 9.0
+	collision.shape = circle
+	coin.add_child(collision)
+
+	var coin_sprite := Sprite2D.new()
+	coin_sprite.texture = COIN_TEXTURE
+	coin_sprite.hframes = 4
+	coin.add_child(coin_sprite)
+	animated_coins.append(coin_sprite)
+
+
+func _add_checkpoint(at_position: Vector2) -> void:
+	var checkpoint := Area2D.new()
+	checkpoint.position = at_position
+	checkpoint.body_entered.connect(_on_checkpoint_entered.bind(at_position))
+	level.add_child(checkpoint)
+
+	var collision := CollisionShape2D.new()
+	var rectangle := RectangleShape2D.new()
+	rectangle.size = Vector2(20.0, 70.0)
+	collision.shape = rectangle
+	checkpoint.add_child(collision)
+
+	var post := Polygon2D.new()
+	post.polygon = PackedVector2Array([
+		Vector2(-2, -33), Vector2(2, -33), Vector2(2, 33), Vector2(-2, 33),
+	])
+	post.color = Color("#594b6b")
+	checkpoint.add_child(post)
+
+	var flag := Polygon2D.new()
+	flag.polygon = PackedVector2Array([
+		Vector2(2, -32), Vector2(20, -26), Vector2(2, -19),
+	])
+	flag.color = Color("#ffd166")
+	checkpoint.add_child(flag)
+
+
+func _add_finish() -> void:
+	var finish := Area2D.new()
+	finish.position = Vector2(FINISH_X, 184.0)
+	finish.body_entered.connect(_on_finish_entered)
+	level.add_child(finish)
+
+	var collision := CollisionShape2D.new()
+	var rectangle := RectangleShape2D.new()
+	rectangle.size = Vector2(28.0, 76.0)
+	collision.shape = rectangle
+	finish.add_child(collision)
+
+	var post := Polygon2D.new()
+	post.polygon = PackedVector2Array([
+		Vector2(-2, -36), Vector2(2, -36), Vector2(2, 36), Vector2(-2, 36),
+	])
+	post.color = Color("#594b6b")
+	finish.add_child(post)
+
+	var flag := Polygon2D.new()
+	flag.polygon = PackedVector2Array([
+		Vector2(2, -35), Vector2(23, -28), Vector2(2, -21),
+	])
+	flag.color = Color("#ff6b6b")
+	finish.add_child(flag)
+
+
+func _spawn_player() -> void:
+	player = PLAYER_SCENE.instantiate() as SuperRushPlayer
+	player.position = checkpoint_position
+	player.run_started.connect(_on_run_started)
+	level.add_child(player)
+
+
+func _create_hud() -> void:
+	var hud := CanvasLayer.new()
+	add_child(hud)
+
+	var panel := ColorRect.new()
+	panel.position = Vector2(8, 8)
+	panel.size = Vector2(202, 62)
+	panel.color = Color(0.08, 0.13, 0.18, 0.86)
+	hud.add_child(panel)
+
+	timer_label = _add_label(hud, Vector2(16, 12), Vector2(188, 21), "TEMPO  00:00.00", 16)
+	stats_label = _add_label(hud, Vector2(16, 34), Vector2(188, 16), "MOEDAS  0    QUEDAS  0", 11)
+	best_label = _add_label(hud, Vector2(16, 49), Vector2(188, 16), "RECORDE  --:--.--", 11)
+	status_label = _add_label(hud, Vector2(216, 12), Vector2(254, 18), "A/D ou setas: correr", 11)
+	_add_label(hud, Vector2(216, 29), Vector2(254, 18), "Espaco: pular    Shift/X: dash    R: reiniciar", 9)
+	_update_hud()
+
+
+func _add_label(parent: Node, at_position: Vector2, label_size: Vector2, text: String, font_size: int) -> Label:
+	var label := Label.new()
+	label.position = at_position
+	label.size = label_size
+	label.text = text
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", Color("#fff4d6"))
+	parent.add_child(label)
+	return label
+
+
+func _on_run_started() -> void:
+	timer_running = true
+	status_label.text = "Em corrida! Encontre o melhor caminho."
+
+
+func _on_hazard_entered(body: Node2D) -> void:
+	if body == player and not run_finished:
+		_respawn_player()
+
+
+func _on_coin_body_entered(body: Node2D, coin: Area2D) -> void:
+	if body != player or not is_instance_valid(coin):
+		return
+	coin_count += 1
+	coin.queue_free()
+	_update_hud()
+
+
+func _on_checkpoint_entered(body: Node2D, at_position: Vector2) -> void:
+	if body != player:
+		return
+	checkpoint_position = at_position + Vector2(0, 18)
+	status_label.text = "Checkpoint ativado!"
+
+
+func _on_finish_entered(body: Node2D) -> void:
+	if body != player or run_finished:
+		return
+	run_finished = true
+	timer_running = false
+	status_label.text = "CHEGADA! Tempo: %s  |  R para tentar de novo" % _format_time(elapsed_time)
+	if best_time <= 0.0 or elapsed_time < best_time:
+		best_time = elapsed_time
+		_save_record()
+	_update_hud()
+
+
+func _respawn_player() -> void:
+	if run_finished:
+		return
+	death_count += 1
+	player.respawn(checkpoint_position)
+	status_label.text = "De volta ao checkpoint! Tente outra rota."
+	_update_hud()
+
+
+func _update_hud() -> void:
+	if stats_label != null:
+		stats_label.text = "MOEDAS  %d    QUEDAS  %d" % [coin_count, death_count]
+	if best_label != null:
+		best_label.text = "RECORDE  %s" % (_format_time(best_time) if best_time > 0.0 else "--:--.--")
+
+
+func _format_time(seconds: float) -> String:
+	var centiseconds: int = int(fmod(seconds, 1.0) * 100.0)
+	var total_seconds: int = int(seconds)
+	var minutes: int = total_seconds / 60
+	var remaining_seconds: int = total_seconds % 60
+	return "%02d:%02d.%02d" % [minutes, remaining_seconds, centiseconds]
