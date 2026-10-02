@@ -17,6 +17,7 @@ var status_label: Label
 var best_label: Label
 var life_meter: Control
 var game_over_overlay: ColorRect
+var damage_flash: ColorRect
 var elapsed_time: float = 0.0
 var best_time: float = 0.0
 var death_count: int = 0
@@ -43,8 +44,10 @@ func _process(delta: float) -> void:
 	if damage_cooldown > 0.0:
 		damage_cooldown = maxf(damage_cooldown - delta, 0.0)
 		player.sprite.visible = int(damage_cooldown * 12.0) % 2 == 0
+		damage_flash.color.a = 0.26 if int(damage_cooldown * 12.0) % 2 == 0 else 0.0
 		if damage_cooldown == 0.0:
 			player.sprite.visible = true
+			damage_flash.color.a = 0.0
 
 	if timer_running and not run_finished:
 		elapsed_time += delta
@@ -318,36 +321,57 @@ func _create_hud() -> void:
 
 	var panel := ColorRect.new()
 	panel.position = Vector2(8, 8)
-	panel.size = Vector2(202, 94)
+	panel.size = Vector2(168, 66)
 	panel.color = Color(0.08, 0.13, 0.18, 0.86)
 	hud.add_child(panel)
 
-	timer_label = _add_label(hud, Vector2(16, 12), Vector2(188, 21), "TEMPO  00:00.00", 16)
-	_add_label(hud, Vector2(16, 35), Vector2(40, 14), "VIDAS", 11)
-	var life_meter_script: Script = load("res://src/life_meter.gd")
-	life_meter = Control.new()
-	life_meter.position = Vector2(60, 37)
-	life_meter.custom_minimum_size = Vector2(78, 12)
-	life_meter.set_script(life_meter_script)
-	hud.add_child(life_meter)
-	life_meter.call("set_lives", lives)
-
+	timer_label = _add_label(hud, Vector2(16, 12), Vector2(156, 15), "TEMPO  00:00.00", 8)
+	best_label = _add_label(hud, Vector2(16, 29), Vector2(156, 12), "RECORDE  --:--.--", 8)
 	var coin_icon := Sprite2D.new()
 	coin_icon.texture = COIN_TEXTURE
 	coin_icon.hframes = 4
 	coin_icon.frame = 0
-	coin_icon.position = Vector2(24, 64)
+	coin_icon.position = Vector2(23, 51)
 	hud.add_child(coin_icon)
 	animated_coins.append(coin_icon)
+	stats_label = _add_label(hud, Vector2(34, 45), Vector2(136, 12), "MOEDAS  000  QUEDAS  0", 8)
 
-	stats_label = _add_label(hud, Vector2(38, 57), Vector2(164, 16), "MOEDAS  000  QUEDAS  0", 11)
-	best_label = _add_label(hud, Vector2(16, 76), Vector2(188, 16), "RECORDE  --:--.--", 11)
+	var life_panel := ColorRect.new()
+	life_panel.anchor_left = 1.0
+	life_panel.anchor_right = 1.0
+	life_panel.offset_left = -154.0
+	life_panel.offset_top = 8.0
+	life_panel.offset_right = -8.0
+	life_panel.offset_bottom = 42.0
+	life_panel.color = Color(0.08, 0.13, 0.18, 0.86)
+	hud.add_child(life_panel)
+	_add_label(
+		life_panel,
+		Vector2(8, 9),
+		Vector2(48, 16),
+		"VIDAS",
+		8
+	)
+	var life_meter_script: Script = load("res://src/life_meter.gd")
+	life_meter = Control.new()
+	life_meter.position = Vector2(60, 12)
+	life_meter.custom_minimum_size = Vector2(78, 12)
+	life_meter.set_script(life_meter_script)
+	life_panel.add_child(life_meter)
+	life_meter.call("set_lives", lives)
+
 	status_label = _add_label(hud, Vector2(216, 12), Vector2(254, 18), "A/D ou setas: correr", 11)
 	_add_label(hud, Vector2(216, 29), Vector2(254, 18), "Espaco: pular    Shift/X: dash    R: reiniciar", 9)
 
+	damage_flash = ColorRect.new()
+	damage_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	damage_flash.color = Color(1.0, 0.0, 0.04, 0.0)
+	damage_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(damage_flash)
+
 	game_over_overlay = ColorRect.new()
 	game_over_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	game_over_overlay.color = Color(0.02, 0.04, 0.08, 0.8)
+	game_over_overlay.color = Color(0.42, 0.01, 0.04, 0.8)
 	game_over_overlay.visible = false
 	hud.add_child(game_over_overlay)
 
@@ -430,11 +454,14 @@ func _respawn_player() -> void:
 	player.respawn(checkpoint_position)
 	damage_cooldown = DAMAGE_COOLDOWN
 	player.sprite.visible = true
+	if is_instance_valid(damage_flash):
+		damage_flash.color.a = 0.26
 	_update_hud()
 	if lives == 0:
 		game_over = true
 		timer_running = false
 		player.set_physics_process(false)
+		damage_flash.color.a = 0.0
 		status_label.text = "Sem vidas! R para reiniciar."
 		game_over_overlay.visible = true
 		return
