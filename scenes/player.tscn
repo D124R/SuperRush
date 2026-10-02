@@ -18,10 +18,12 @@ scale = Vector2(0.75, 0.75)
 shape = SubResource("RectangleShape2D_player")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-offset = Vector2(0, -45)
+enabled = true
+offset = Vector2(0, -24)
+zoom = Vector2(1, 1)
 position_smoothing_enabled = true
-position_smoothing_speed = 8.0
+position_smoothing_speed = 6.0
 limit_left = 0
-limit_top = -100
-limit_right = 3020
-limit_bottom = 500
+limit_top = -80
+limit_right = 3180
+limit_bottom = 320

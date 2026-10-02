@@ -1,41 +1,58 @@
 extends Node2D
 
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
-const BACKGROUND_TEXTURE: Texture2D = preload("res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/_Complete_static_BG_(288 x 208).png")
+const STAGE_NAMES: Array[String] = ["GRAMADO", "FLORESTA", "TROPICOS"]
+const STAGE_BACKGROUNDS: Array[Texture2D] = [
+	preload("res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/_Complete_static_BG_(288 x 208).png"),
+	preload("res://assets/Seasonal Tilesets/Seasonal Tilesets/2 - Autumn Forest/Background parts/_Complete_static_BG_(288 x 208).png"),
+	preload("res://assets/Seasonal Tilesets/Seasonal Tilesets/3 - Tropics/Background parts/_Complete_static_BG_(288 x 208).png"),
+]
 const COIN_TEXTURE: Texture2D = preload("res://assets/Mini FX, Items & UI/Mini FX, Items & UI/Common Pick-ups/Coin (16 x 16).png")
 const RECORD_PATH: String = "user://super_rush_records.cfg"
-const FINISH_X: float = 2940.0
+const RECORD_KEY: String = "full_course"
 const MAX_LIVES: int = 5
 const DAMAGE_COOLDOWN: float = 1.0
 
 @onready var level: Node2D = $Level
 
 var player: SuperRushPlayer
+var background: TextureRect
 var timer_label: Label
 var stats_label: Label
 var status_label: Label
 var best_label: Label
+var stage_label: Label
 var life_meter: Control
 var game_over_overlay: ColorRect
+var game_over_label: Label
+var retry_button: Button
 var damage_flash: ColorRect
 var elapsed_time: float = 0.0
 var best_time: float = 0.0
 var death_count: int = 0
 var coin_count: int = 0
 var lives: int = MAX_LIVES
+var stage_index: int = 0
+var stage_finish_x: float = 2940.0
 var damage_cooldown: float = 0.0
 var checkpoint_position: Vector2 = Vector2(48.0, 208.0)
 var timer_running: bool = false
 var run_finished: bool = false
 var game_over: bool = false
+var stage_transition_pending: bool = false
 var animated_coins: Array[Sprite2D] = []
+var dirt_color := Color("#a85b42")
+var grass_color := Color("#57c86c")
+var grass_trim_color := Color("#318c55")
+var spike_color := Color("#e65858")
+var finish_flag_color := Color("#ff6b6b")
 
 
 func _ready() -> void:
 	_setup_input()
 	_load_record()
 	_create_background()
-	_build_level()
+	_build_stage(stage_index)
 	_spawn_player()
 	_create_hud()
 
@@ -87,7 +104,7 @@ func _add_action(action_name: StringName, keys: Array[int]) -> void:
 func _load_record() -> void:
 	var config := ConfigFile.new()
 	if config.load(RECORD_PATH) == OK:
-		best_time = float(config.get_value("records", "grassland", 0.0))
+		best_time = float(config.get_value("records", RECORD_KEY, 0.0))
 
 
 func _save_record() -> void:
@@ -96,7 +113,7 @@ func _save_record() -> void:
 	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
 		push_warning("Nao foi possivel carregar o arquivo de recordes: %s" % error_string(load_error))
 		return
-	config.set_value("records", "grassland", best_time)
+	config.set_value("records", RECORD_KEY, best_time)
 	var save_error: Error = config.save(RECORD_PATH)
 	if save_error != OK:
 		push_warning("Nao foi possivel salvar o recorde: %s" % error_string(save_error))
@@ -107,8 +124,8 @@ func _create_background() -> void:
 	background_layer.layer = -1
 	add_child(background_layer)
 
-	var background := TextureRect.new()
-	background.texture = BACKGROUND_TEXTURE
+	background = TextureRect.new()
+	background.texture = STAGE_BACKGROUNDS[0]
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_SCALE
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -116,57 +133,117 @@ func _create_background() -> void:
 	background_layer.add_child(background)
 
 
-func _build_level() -> void:
-	var ground_segments: Array[Vector3] = [
-		Vector3(0, 500, 220),
-		Vector3(560, 310, 220),
-		Vector3(930, 270, 220),
-		Vector3(1260, 300, 220),
-		Vector3(1620, 310, 220),
-		Vector3(1990, 270, 220),
-		Vector3(2320, 700, 220),
-	]
+func _build_stage(index: int) -> void:
+	background.texture = STAGE_BACKGROUNDS[index]
+	var ground_segments: Array[Vector3]
+	var shortcut_platforms: Array[Vector3]
+	var spike_rows: Array[Vector3]
+	var coin_positions: Array[Vector2]
+	var checkpoint_at := Vector2(1450.0, 190.0)
+
+	match index:
+		0:
+			stage_finish_x = 2940.0
+			dirt_color = Color("#a85b42")
+			grass_color = Color("#57c86c")
+			grass_trim_color = Color("#318c55")
+			spike_color = Color("#e65858")
+			finish_flag_color = Color("#ff6b6b")
+			ground_segments = [
+				Vector3(0, 500, 220), Vector3(560, 310, 220), Vector3(930, 270, 220),
+				Vector3(1260, 300, 220), Vector3(1620, 310, 220), Vector3(1990, 270, 220),
+				Vector3(2320, 700, 220),
+			]
+			shortcut_platforms = [
+				Vector3(485, 68, 178), Vector3(810, 72, 166), Vector3(1110, 72, 178),
+				Vector3(1485, 82, 162), Vector3(1875, 72, 174), Vector3(2215, 72, 164),
+			]
+			spike_rows = [
+				Vector3(260, 42, 220), Vector3(680, 42, 220), Vector3(1000, 42, 220),
+				Vector3(1320, 42, 220), Vector3(1720, 42, 220), Vector3(2105, 48, 220),
+				Vector3(2490, 48, 220), Vector3(2740, 42, 220),
+			]
+			coin_positions = [
+				Vector2(150, 190), Vector2(190, 174), Vector2(230, 190),
+				Vector2(390, 150), Vector2(430, 150), Vector2(520, 145),
+				Vector2(620, 190), Vector2(720, 150), Vector2(850, 138),
+				Vector2(960, 190), Vector2(1080, 150), Vector2(1160, 145),
+				Vector2(1360, 190), Vector2(1440, 140), Vector2(1530, 135),
+				Vector2(1650, 190), Vector2(1810, 190), Vector2(1910, 145),
+				Vector2(2050, 190), Vector2(2170, 135), Vector2(2260, 140),
+				Vector2(2400, 190), Vector2(2590, 190), Vector2(2810, 190),
+			]
+		1:
+			stage_finish_x = 2650.0
+			checkpoint_at = Vector2(1370.0, 190.0)
+			dirt_color = Color("#79533f")
+			grass_color = Color("#d98945")
+			grass_trim_color = Color("#a85439")
+			spike_color = Color("#ef714c")
+			finish_flag_color = Color("#ffd166")
+			ground_segments = [
+				Vector3(0, 460, 220), Vector3(510, 260, 220), Vector3(860, 300, 220),
+				Vector3(1250, 300, 220), Vector3(1630, 300, 220), Vector3(2020, 680, 220),
+			]
+			shortcut_platforms = [
+				Vector3(425, 70, 170), Vector3(750, 72, 160), Vector3(1090, 70, 166),
+				Vector3(1450, 74, 160), Vector3(1825, 70, 165), Vector3(2220, 72, 165),
+			]
+			spike_rows = [
+				Vector3(190, 38, 220), Vector3(605, 38, 220), Vector3(965, 42, 220),
+				Vector3(1320, 38, 220), Vector3(1705, 44, 220), Vector3(2140, 44, 220),
+				Vector3(2450, 42, 220),
+			]
+			coin_positions = [
+				Vector2(135, 178), Vector2(300, 185), Vector2(450, 135),
+				Vector2(570, 185), Vector2(700, 135), Vector2(820, 145),
+				Vector2(990, 185), Vector2(1060, 138), Vector2(1200, 185),
+				Vector2(1410, 135), Vector2(1540, 185), Vector2(1790, 140),
+				Vector2(1940, 185), Vector2(2100, 185), Vector2(2200, 140),
+				Vector2(2360, 185), Vector2(2560, 185),
+			]
+		2:
+			stage_finish_x = 3260.0
+			checkpoint_at = Vector2(1700.0, 190.0)
+			dirt_color = Color("#765a47")
+			grass_color = Color("#43c9b4")
+			grass_trim_color = Color("#238c94")
+			spike_color = Color("#fa5d73")
+			finish_flag_color = Color("#ffe078")
+			ground_segments = [
+				Vector3(0, 420, 220), Vector3(500, 310, 210), Vector3(900, 250, 220),
+				Vector3(1260, 320, 210), Vector3(1650, 300, 220), Vector3(2040, 300, 210),
+				Vector3(2430, 900, 220),
+			]
+			shortcut_platforms = [
+				Vector3(410, 74, 170), Vector3(775, 76, 162), Vector3(1110, 72, 168),
+				Vector3(1480, 76, 160), Vector3(1860, 72, 166), Vector3(2240, 76, 160),
+				Vector3(2700, 72, 168), Vector3(3000, 72, 165),
+			]
+			spike_rows = [
+				Vector3(220, 44, 220), Vector3(620, 42, 210), Vector3(1020, 46, 220),
+				Vector3(1380, 42, 210), Vector3(1760, 46, 220), Vector3(2160, 42, 210),
+				Vector3(2530, 48, 220), Vector3(2890, 44, 220), Vector3(3150, 40, 220),
+			]
+			coin_positions = [
+				Vector2(130, 185), Vector2(340, 145), Vector2(460, 140),
+				Vector2(575, 175), Vector2(735, 135), Vector2(860, 185),
+				Vector2(990, 140), Vector2(1170, 185), Vector2(1350, 140),
+				Vector2(1510, 135), Vector2(1740, 185), Vector2(1900, 140),
+				Vector2(2110, 175), Vector2(2300, 140), Vector2(2490, 185),
+				Vector2(2670, 140), Vector2(2820, 185), Vector2(3000, 140),
+				Vector2(3200, 185),
+			]
+
 	for segment in ground_segments:
 		_add_platform(segment.x, segment.y, segment.z)
-
-	var shortcut_platforms: Array[Vector3] = [
-		Vector3(485, 68, 178),
-		Vector3(810, 72, 166),
-		Vector3(1110, 72, 178),
-		Vector3(1485, 82, 162),
-		Vector3(1875, 72, 174),
-		Vector3(2215, 72, 164),
-	]
 	for platform in shortcut_platforms:
 		_add_platform(platform.x, platform.y, platform.z)
-
-	var spike_rows: Array[Vector3] = [
-		Vector3(260, 42, 220),
-		Vector3(680, 42, 220),
-		Vector3(1000, 42, 220),
-		Vector3(1320, 42, 220),
-		Vector3(1720, 42, 220),
-		Vector3(2105, 48, 220),
-		Vector3(2490, 48, 220),
-		Vector3(2740, 42, 220),
-	]
 	for spikes in spike_rows:
 		_add_spikes(spikes.x, spikes.y, spikes.z)
-
-	var coin_positions: Array[Vector2] = [
-		Vector2(150, 190), Vector2(190, 174), Vector2(230, 190),
-		Vector2(390, 150), Vector2(430, 150), Vector2(520, 145),
-		Vector2(620, 190), Vector2(720, 150), Vector2(850, 138),
-		Vector2(960, 190), Vector2(1080, 150), Vector2(1160, 145),
-		Vector2(1360, 190), Vector2(1440, 140), Vector2(1530, 135),
-		Vector2(1650, 190), Vector2(1810, 190), Vector2(1910, 145),
-		Vector2(2050, 190), Vector2(2170, 135), Vector2(2260, 140),
-		Vector2(2400, 190), Vector2(2590, 190), Vector2(2810, 190),
-	]
 	for coin_position in coin_positions:
 		_add_coin(coin_position)
-
-	_add_checkpoint(Vector2(1450, 190))
+	_add_checkpoint(checkpoint_at)
 	_add_finish()
 
 
@@ -186,7 +263,7 @@ func _add_platform(start: float, width: float, top: float) -> void:
 		Vector2(-width * 0.5, -9), Vector2(width * 0.5, -9),
 		Vector2(width * 0.5, 9), Vector2(-width * 0.5, 9),
 	])
-	dirt.color = Color("#a85b42")
+	dirt.color = dirt_color
 	platform.add_child(dirt)
 
 	var grass := Polygon2D.new()
@@ -194,7 +271,7 @@ func _add_platform(start: float, width: float, top: float) -> void:
 		Vector2(-width * 0.5, -9), Vector2(width * 0.5, -9),
 		Vector2(width * 0.5, -4), Vector2(-width * 0.5, -4),
 	])
-	grass.color = Color("#57c86c")
+	grass.color = grass_color
 	platform.add_child(grass)
 
 	var trim := Polygon2D.new()
@@ -202,7 +279,7 @@ func _add_platform(start: float, width: float, top: float) -> void:
 		Vector2(-width * 0.5, -4), Vector2(width * 0.5, -4),
 		Vector2(width * 0.5, -2), Vector2(-width * 0.5, -2),
 	])
-	trim.color = Color("#318c55")
+	trim.color = grass_trim_color
 	platform.add_child(trim)
 
 
@@ -230,7 +307,7 @@ func _add_spikes(start: float, width: float, top: float) -> void:
 			Vector2(minf(spike_width, width - x), 12.0),
 		])
 		spike_tip.position.x = x
-		spike_tip.color = Color("#e65858")
+		spike_tip.color = spike_color
 		spikes.add_child(spike_tip)
 		x += spike_width
 
@@ -283,7 +360,7 @@ func _add_checkpoint(at_position: Vector2) -> void:
 
 func _add_finish() -> void:
 	var finish := Area2D.new()
-	finish.position = Vector2(FINISH_X, 184.0)
+	finish.position = Vector2(stage_finish_x, 184.0)
 	finish.body_entered.connect(_on_finish_entered)
 	level.add_child(finish)
 
@@ -304,7 +381,7 @@ func _add_finish() -> void:
 	flag.polygon = PackedVector2Array([
 		Vector2(2, -35), Vector2(23, -28), Vector2(2, -21),
 	])
-	flag.color = Color("#ff6b6b")
+	flag.color = finish_flag_color
 	finish.add_child(flag)
 
 
@@ -313,6 +390,12 @@ func _spawn_player() -> void:
 	player.position = checkpoint_position
 	player.run_started.connect(_on_run_started)
 	level.add_child(player)
+	player.camera.limit_left = 0
+	player.camera.limit_top = -80
+	player.camera.limit_right = roundi(stage_finish_x + 240.0)
+	player.camera.limit_bottom = 320
+	player.camera.offset = Vector2(0.0, -24.0)
+	player.camera.make_current()
 
 
 func _create_hud() -> void:
@@ -362,6 +445,7 @@ func _create_hud() -> void:
 
 	status_label = _add_label(hud, Vector2(216, 12), Vector2(254, 18), "A/D ou setas: correr", 11)
 	_add_label(hud, Vector2(216, 29), Vector2(254, 18), "Espaco: pular    Shift/X: dash    R: reiniciar", 9)
+	stage_label = _add_label(hud, Vector2(216, 48), Vector2(254, 16), _stage_heading(), 9)
 
 	damage_flash = ColorRect.new()
 	damage_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -385,12 +469,12 @@ func _create_hud() -> void:
 	game_over_content.alignment = BoxContainer.ALIGNMENT_CENTER
 	game_over_panel.add_child(game_over_content)
 
-	var game_over_label := Label.new()
+	game_over_label = Label.new()
 	game_over_label.text = "FIM DE JOGO"
 	game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	game_over_content.add_child(game_over_label)
 
-	var retry_button := Button.new()
+	retry_button = Button.new()
 	retry_button.text = "TENTAR DE NOVO"
 	retry_button.pressed.connect(_on_retry_pressed)
 	game_over_content.add_child(retry_button)
@@ -411,7 +495,7 @@ func _add_label(parent: Node, at_position: Vector2, label_size: Vector2, text: S
 
 func _on_run_started() -> void:
 	timer_running = true
-	status_label.text = "Em corrida! Encontre o melhor caminho."
+	status_label.text = "Correndo: %s!" % STAGE_NAMES[stage_index]
 
 
 func _on_hazard_entered(body: Node2D) -> void:
@@ -435,15 +519,59 @@ func _on_checkpoint_entered(body: Node2D, at_position: Vector2) -> void:
 
 
 func _on_finish_entered(body: Node2D) -> void:
-	if body != player or run_finished or game_over:
+	if body != player or run_finished or game_over or stage_transition_pending:
 		return
+	if stage_index < STAGE_NAMES.size() - 1:
+		stage_transition_pending = true
+		player.set_physics_process(false)
+		status_label.text = "FASE CONCLUIDA! Preparando %s..." % STAGE_NAMES[stage_index + 1]
+		_advance_to_next_stage()
+		return
+
 	run_finished = true
 	timer_running = false
-	status_label.text = "CHEGADA! Tempo: %s  |  R para tentar de novo" % _format_time(elapsed_time)
+	player.set_physics_process(false)
+	status_label.text = "VOCE VENCEU! Tempo: %s" % _format_time(elapsed_time)
+	game_over_label.text = "VOCE VENCEU!"
+	retry_button.text = "JOGAR DE NOVO"
+	game_over_overlay.color = Color(0.05, 0.25, 0.12, 0.84)
+	game_over_overlay.visible = true
 	if best_time <= 0.0 or elapsed_time < best_time:
 		best_time = elapsed_time
 		_save_record()
 	_update_hud()
+
+
+func _advance_to_next_stage() -> void:
+	var resume_timer := timer_running
+	timer_running = false
+	await get_tree().create_timer(0.8).timeout
+	if game_over:
+		return
+
+	stage_index += 1
+	run_finished = false
+	stage_transition_pending = false
+	checkpoint_position = Vector2(48.0, 208.0)
+	animated_coins.clear()
+	for stage_node in level.get_children():
+		level.remove_child(stage_node)
+		stage_node.queue_free()
+	player = null
+
+	_build_stage(stage_index)
+	_spawn_player()
+	stage_label.text = _stage_heading()
+	timer_running = resume_timer
+	if resume_timer:
+		status_label.text = "Correndo: %s!" % STAGE_NAMES[stage_index]
+	else:
+		status_label.text = "FASE %d - %s" % [stage_index + 1, STAGE_NAMES[stage_index]]
+	_update_hud()
+
+
+func _stage_heading() -> String:
+	return "FASE %d/%d - %s" % [stage_index + 1, STAGE_NAMES.size(), STAGE_NAMES[stage_index]]
 
 
 func _respawn_player() -> void:

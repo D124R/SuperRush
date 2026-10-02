@@ -20,6 +20,6 @@ func _draw() -> void:
 		draw_texture_rect_region(
 			HEART_TEXTURE,
 			Rect2(Vector2(offset_x, 0), HEART_SIZE),
-			Rect2(Vector2.ZERO, HEART_SIZE),
+			Rect2(Vector2.ZERO, Vector2(16.0, 16.0)),
 			tint
 		)

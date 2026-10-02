@@ -24,9 +24,11 @@ O visual usa pixel art de estilo retrô e os recursos incluídos nos pacotes de 
 ## 🎯 Funcionalidades
 
 - Movimento com aceleração e desaceleração
-- Pulo variável, tolerância de borda (coyote time) e buffer de pulo
+- Pulo de altura fixa, tolerância de borda (coyote time) e buffer de pulo
+- Câmera suave seguindo o jogador com limites configurados para cada fase
+- Três fases em sequência: Gramado, Floresta e Trópicos
 - Dash com recarga
-- Cronômetro e recorde local por fase
+- Cronômetro e recorde local da campanha completa
 - Moedas, espinhos, checkpoint e linha de chegada
 - Reinício rápido da tentativa
 
@@ -37,6 +39,6 @@ O visual usa pixel art de estilo retrô e os recursos incluídos nos pacotes de 
 - **Shift** ou **X:** dash
 - **R:** reiniciar a fase
 
-O cronômetro começa no primeiro movimento. Os recordes ficam salvos localmente no arquivo de configuração do usuário da Godot.
+O cronômetro começa no primeiro movimento e continua entre as três fases. O recorde da campanha fica salvo localmente no arquivo de configuração do usuário da Godot.
 
 ---

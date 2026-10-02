@@ -11,7 +11,7 @@ const HURT_TEXTURE: Texture2D = preload("res://assets/Sprite Pack 2/Sprite Pack 
 const RUN_SPEED: float = 285.0
 const ACCELERATION: float = 1900.0
 const FRICTION: float = 2300.0
-const JUMP_SPEED: float = -420.0
+const JUMP_SPEED: float = -480.0
 const GRAVITY: float = 1200.0
 const COYOTE_TIME: float = 0.11
 const JUMP_BUFFER_TIME: float = 0.12
@@ -20,6 +20,7 @@ const DASH_DURATION: float = 0.14
 const DASH_COOLDOWN: float = 0.65
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var camera: Camera2D = $Camera2D
 
 var facing: float = 1.0
 var coyote_timer: float = 0.0
@@ -54,9 +55,6 @@ func _physics_process(delta: float) -> void:
 		velocity.y = JUMP_SPEED
 		jump_buffer_timer = 0.0
 		coyote_timer = 0.0
-
-	if Input.is_action_just_released("jump") and velocity.y < 0.0:
-		velocity.y *= 0.5
 
 	if Input.is_action_just_pressed("dash") and dash_cooldown_timer <= 0.0:
 		if direction == 0.0:
