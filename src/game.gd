@@ -13,6 +13,9 @@ const RECORD_KEY: String = "full_course"
 const MAX_LIVES: int = 5
 const DAMAGE_COOLDOWN: float = 1.0
 
+@export_category("Geracao de mapa")
+@export var layout_seed: int = 0
+
 @onready var level: Node2D = $Level
 
 var player: SuperRushPlayer
@@ -46,10 +49,16 @@ var grass_color := Color("#57c86c")
 var grass_trim_color := Color("#318c55")
 var spike_color := Color("#e65858")
 var finish_flag_color := Color("#ff6b6b")
+var layout_rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	_setup_input()
+	if layout_seed == 0:
+		layout_rng.randomize()
+		layout_seed = layout_rng.seed
+	else:
+		layout_rng.seed = layout_seed
 	_load_record()
 	_create_background()
 	_build_stage(stage_index)
@@ -235,9 +244,20 @@ func _build_stage(index: int) -> void:
 				Vector2(3200, 185),
 			]
 
+	var bonus_platforms: Array[Vector3] = []
+	_vary_stage_layout(
+		ground_segments,
+		shortcut_platforms,
+		spike_rows,
+		coin_positions,
+		bonus_platforms
+	)
+
 	for segment in ground_segments:
 		_add_platform(segment.x, segment.y, segment.z)
 	for platform in shortcut_platforms:
+		_add_platform(platform.x, platform.y, platform.z)
+	for platform in bonus_platforms:
 		_add_platform(platform.x, platform.y, platform.z)
 	for spikes in spike_rows:
 		_add_spikes(spikes.x, spikes.y, spikes.z)
@@ -245,6 +265,59 @@ func _build_stage(index: int) -> void:
 		_add_coin(coin_position)
 	_add_checkpoint(checkpoint_at)
 	_add_finish()
+
+
+func _vary_stage_layout(
+	ground_segments: Array[Vector3],
+	shortcut_platforms: Array[Vector3],
+	spike_rows: Array[Vector3],
+	coin_positions: Array[Vector2],
+	bonus_platforms: Array[Vector3]
+) -> void:
+	for index in range(shortcut_platforms.size()):
+		var platform: Vector3 = shortcut_platforms[index]
+		shortcut_platforms[index] = Vector3(
+			platform.x + layout_rng.randf_range(-12.0, 12.0),
+			platform.y,
+			platform.z + layout_rng.randf_range(-6.0, 6.0)
+		)
+
+	for index in range(spike_rows.size()):
+		var spikes: Vector3 = spike_rows[index]
+		var center_x: float = spikes.x + spikes.y * 0.5
+		var width: float = clampf(
+			spikes.y + layout_rng.randf_range(-12.0, 12.0),
+			30.0,
+			54.0
+		)
+		center_x += layout_rng.randf_range(-8.0, 8.0)
+		spike_rows[index] = Vector3(center_x - width * 0.5, width, spikes.z)
+
+	for segment_index in range(1, ground_segments.size() - 1):
+		if layout_rng.randf() > 0.4:
+			continue
+
+		var ground: Vector3 = ground_segments[segment_index]
+		var max_platform_width: float = minf(104.0, ground.y - 120.0)
+		if max_platform_width < 72.0:
+			continue
+		var width := layout_rng.randf_range(72.0, max_platform_width)
+		var min_x: float = ground.x + 54.0
+		var max_x: float = ground.x + ground.y - width - 54.0
+		if max_x < min_x:
+			continue
+
+		var start_x := layout_rng.randf_range(min_x, max_x)
+		var platform_top := ground.z - layout_rng.randf_range(44.0, 60.0)
+		bonus_platforms.append(Vector3(start_x, width, platform_top))
+
+		var coin_count := layout_rng.randi_range(2, 4)
+		for coin_index in range(coin_count):
+			var coin_offset := (float(coin_index) - (coin_count - 1) * 0.5) * 22.0
+			coin_positions.append(Vector2(
+				start_x + width * 0.5 + coin_offset,
+				platform_top - 20.0
+			))
 
 
 func _add_platform(start: float, width: float, top: float) -> void:
@@ -397,22 +470,22 @@ func _create_hud() -> void:
 	var hud := CanvasLayer.new()
 	add_child(hud)
 
-	var panel := ColorRect.new()
-	panel.position = Vector2(8, 8)
-	panel.size = Vector2(192, 82)
-	panel.color = Color(0.08, 0.13, 0.18, 0.86)
-	hud.add_child(panel)
-
 	timer_label = _add_label(hud, Vector2(16, 10), Vector2(176, 22), "TEMPO  00:00.00", 12)
 	best_label = _add_label(hud, Vector2(16, 35), Vector2(168, 16), "RECORDE  --:--.--", 10)
+
+	var coin_panel := ColorRect.new()
+	coin_panel.position = Vector2(216, 8)
+	coin_panel.size = Vector2(212, 36)
+	coin_panel.color = Color(0.08, 0.13, 0.18, 0.86)
+	hud.add_child(coin_panel)
 	var coin_icon := Sprite2D.new()
 	coin_icon.texture = COIN_TEXTURE
 	coin_icon.hframes = 4
 	coin_icon.frame = 0
-	coin_icon.position = Vector2(23, 65)
+	coin_icon.position = Vector2(231, 26)
 	hud.add_child(coin_icon)
 	animated_coins.append(coin_icon)
-	stats_label = _add_label(hud, Vector2(36, 58), Vector2(156, 18), "MOEDAS  000  QUEDAS  0", 9)
+	stats_label = _add_label(hud, Vector2(246, 18), Vector2(174, 18), "MOEDAS  000  QUEDAS  0", 9)
 
 	var life_panel := ColorRect.new()
 	life_panel.anchor_left = 1.0
@@ -438,9 +511,9 @@ func _create_hud() -> void:
 	life_panel.add_child(life_meter)
 	life_meter.call("set_lives", lives)
 
-	status_label = _add_label(hud, Vector2(216, 12), Vector2(254, 18), "A/D ou setas: correr", 10)
-	_add_label(hud, Vector2(216, 30), Vector2(254, 18), "Espaco: pular    Shift/X: dash    R: reiniciar", 8)
-	stage_label = _add_label(hud, Vector2(216, 48), Vector2(254, 16), _stage_heading(), 9)
+	status_label = _add_label(hud, Vector2(216, 48), Vector2(220, 16), "A/D ou setas: correr", 9)
+	_add_label(hud, Vector2(216, 64), Vector2(220, 16), "Espaco: pular  Shift/X: dash", 8)
+	stage_label = _add_label(hud, Vector2(216, 80), Vector2(220, 16), _stage_heading(), 9)
 
 	damage_flash = ColorRect.new()
 	damage_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

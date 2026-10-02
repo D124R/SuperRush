@@ -30,6 +30,7 @@ O visual usa pixel art de estilo retrô e os recursos incluídos nos pacotes de 
 - Dash com recarga
 - Cronômetro e recorde local da campanha completa
 - Moedas, espinhos, checkpoint e linha de chegada
+- Rotas bônus, plataformas, moedas e obstáculos com variações geradas por seed
 - Reinício rápido da tentativa
 
 ## Controles
@@ -38,6 +39,8 @@ O visual usa pixel art de estilo retrô e os recursos incluídos nos pacotes de 
 - **Espaço**, **W** ou **seta para cima:** pular
 - **Shift** ou **X:** dash
 - **R:** reiniciar a fase
+
+Em **Geracao de mapa**, a seed `0` cria uma variação nova ao iniciar; informar outro valor permite repetir a mesma configuração.
 
 O cronômetro começa no primeiro movimento e continua entre as três fases. O recorde da campanha fica salvo localmente no arquivo de configuração do usuário da Godot.
 
