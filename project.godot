@@ -13,7 +13,7 @@ config_version=5
 config/name="Super Rush"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/title_screen.tscn"
 
 [display]
 
