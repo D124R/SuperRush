@@ -10,25 +10,46 @@ config_version=5
 
 [application]
 
-config/name="Super Rush"
-config/features=PackedStringArray("4.6", "GL Compatibility")
+config/name="SuperRush"
+run/main_scene="res://preafbs/title_screen.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
-run/main_scene="res://scenes/title_screen.tscn"
 
 [display]
 
-window/size/viewport_width=480
-window/size/viewport_height=270
-window/size/window_width_override=960
-window/size/window_height_override=540
-window/stretch/mode="canvas_items"
+window/size/viewport_width=640
+window/size/viewport_height=320
+window/stretch/mode="viewport"
 
-[rendering]
+[gui]
 
-textures/canvas_textures/default_texture_filter=0
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"
+theme/custom="res://assets/ui/pixel_theme.tres"
+
+[layer_names]
+
+2d_physics/layer_1="player"
+2d_physics/layer_2="world "
+2d_physics/layer_3="enemies"
+2d_physics/layer_4="items"
+2d_physics/layer_5="hitbox"
+2d_physics/layer_6="hurtbox"
+
+[orchestrator]
+
+runtime/dialogue/default_message_scene=""
 
 [physics]
 
 3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+rendering_device/driver.windows="d3d12"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/custom=""
+textures/layer_3=""
+textures/layer_4=""
+textures/layer_2=""
+textures/layer_1=""

@@ -1,12 +1,12 @@
 extends Control
 
-@onready var title_label: Label = $MenuPanel/TitleLabel
-@onready var start_button: Button = $MenuPanel/Buttons/StartButton
-@onready var options_button: Button = $MenuPanel/Buttons/OptionsButton
-@onready var language_button: Button = $MenuPanel/Buttons/LanguageButton
-@onready var quit_button: Button = $MenuPanel/Buttons/QuitButton
-@onready var options_panel: Panel = $OptionsPanel
+@onready var start_button: Button = $MarginContainer/HBoxContainer/VBoxContainer/start_btn
+@onready var options_button: Button = $MarginContainer/HBoxContainer/VBoxContainer/options_btn
+@onready var language_button: Button = $MarginContainer/HBoxContainer/VBoxContainer/language_btn
+@onready var quit_button: Button = $MarginContainer/HBoxContainer/VBoxContainer/quit_btn
+@onready var options_panel: PanelContainer = $OptionsPanel
 @onready var fullscreen_toggle: CheckButton = $OptionsPanel/Content/FullscreenToggle
+@onready var close_options_button: Button = $OptionsPanel/Content/CloseButton
 
 var languages: Array[String] = ["PT-BR", "EN", "ES"]
 var current_language_index: int = 0
@@ -18,13 +18,14 @@ func _ready() -> void:
 	language_button.pressed.connect(_on_language_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
+	close_options_button.pressed.connect(_on_options_pressed)
 	options_panel.visible = false
-	_update_language_button()
-	_update_title_style()
+	fullscreen_toggle.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+	_update_language()
 
 
 func _on_start_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	get_tree().change_scene_to_file("res://scenes/word_01.tscn")
 
 
 func _on_options_pressed() -> void:
@@ -33,8 +34,7 @@ func _on_options_pressed() -> void:
 
 func _on_language_pressed() -> void:
 	current_language_index = (current_language_index + 1) % languages.size()
-	_update_language_button()
-	_update_title_style()
+	_update_language()
 
 
 func _on_quit_pressed() -> void:
@@ -47,24 +47,24 @@ func _on_fullscreen_toggled(is_toggled: bool) -> void:
 	)
 
 
-func _update_language_button() -> void:
-	language_button.text = "Idioma: %s" % languages[current_language_index]
-
-
-func _update_title_style() -> void:
+func _update_language() -> void:
+	language_button.text = "IDIOMA: %s" % languages[current_language_index]
 	match languages[current_language_index]:
 		"PT-BR":
-			title_label.text = "SUPER RUSH"
-			start_button.text = "Entrar"
-			options_button.text = "Opções"
-			quit_button.text = "Sair"
+			start_button.text = "ENTRAR"
+			options_button.text = "OPCOES"
+			quit_button.text = "SAIR"
+			fullscreen_toggle.text = "Tela cheia"
+			close_options_button.text = "Voltar"
 		"EN":
-			title_label.text = "SUPER RUSH"
-			start_button.text = "Play"
-			options_button.text = "Options"
-			quit_button.text = "Quit"
+			start_button.text = "PLAY"
+			options_button.text = "OPTIONS"
+			quit_button.text = "QUIT"
+			fullscreen_toggle.text = "Fullscreen"
+			close_options_button.text = "Back"
 		"ES":
-			title_label.text = "SUPER RUSH"
-			start_button.text = "Jugar"
-			options_button.text = "Opciones"
-			quit_button.text = "Salir"
+			start_button.text = "JUGAR"
+			options_button.text = "OPCIONES"
+			quit_button.text = "SALIR"
+			fullscreen_toggle.text = "Pantalla completa"
+			close_options_button.text = "Volver"

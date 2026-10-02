@@ -1,9 +1,9 @@
 extends Control
 
 const LIFE_COUNT: int = 5
+const HEART_SIZE := Vector2(28, 28)
+const HEART_GAP := 4.0
 const HEART_TEXTURE: Texture2D = preload("res://assets/Mini FX, Items & UI/Mini FX, Items & UI/Common Pick-ups/Heart_Spin (16 x 16).png")
-const HEART_SIZE := Vector2(16.0, 16.0)
-const HEART_GAP := 3.0
 
 var current_lives: int = LIFE_COUNT
 
@@ -20,6 +20,8 @@ func _draw() -> void:
 		draw_texture_rect_region(
 			HEART_TEXTURE,
 			Rect2(Vector2(offset_x, 0), HEART_SIZE),
-			Rect2(Vector2.ZERO, Vector2(16.0, 16.0)),
-			tint
+			Rect2(Vector2.ZERO, Vector2(16, 16)),
+			tint,
+			false,
+			false
 		)

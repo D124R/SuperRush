@@ -1,30 +1,42 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://dt1w0roc1cw2v"]
 
-[ext_resource type="Script" path="res://src/player.gd" id="1_player"]
-[ext_resource type="Texture2D" path="res://assets/Sprite Pack 2/Sprite Pack 2/2 - Mr. Mochi/Running (32 x 32).png" id="2_running"]
+[ext_resource type="PackedScene" uid="uid://cl4ujo5oyvxwj" path="res://scenes/actors/player.tscn" id="1_3vyb7"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
-size = Vector2(14, 20)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3vyb7"]
+size = Vector2(16, 12)
 
-[node name="Player" type="CharacterBody2D"]
-script = ExtResource("1_player")
+[node name="Player" unique_id=1009301341 instance=ExtResource("1_3vyb7")]
+collision_mask = 22
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_running")
-hframes = 4
-scale = Vector2(0.75, 0.75)
+[node name="colision" parent="." index="0" unique_id=1018075623]
+visible = true
+position = Vector2(1, 101.5)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_player")
-
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="camera" parent="." index="1" unique_id=1340790707]
 enabled = true
-offset = Vector2(0, -12)
-zoom = Vector2(1, 1)
 process_callback = 1
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
-limit_left = -240
-limit_top = -120
-limit_right = 3180
-limit_bottom = 320
+limit_left = -1000
+limit_top = -1000
+limit_right = 10000
+limit_bottom = 10000
+
+[node name="anim" parent="." index="2" unique_id=936335231]
+animation = &"run"
+frame = 1
+frame_progress = 0.2768864
+
+[node name="hurtbox" type="Area2D" parent="." index="4" unique_id=1434328385]
+collision_layer = 0
+collision_mask = 4
+
+[node name="collision" type="CollisionShape2D" parent="hurtbox" index="0" unique_id=93404359]
+position = Vector2(1, 100)
+shape = SubResource("RectangleShape2D_3vyb7")
+debug_color = Color(0.7830675, 0.16049176, 0.2634966, 0.63000005)
+
+[node name="remote" type="RemoteTransform2D" parent="." index="5" unique_id=1208910166]
+remote_path = NodePath(".")
+
+[connection signal="body_entered" from="hurtbox" to="." method="_on_hurtbox_body_entered"]

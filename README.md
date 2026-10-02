@@ -1,47 +1,28 @@
 # Super Rush
 
-Um jogo original de speedrun 2D em pixel art, feito com Godot 4. A proposta mistura plataformas, obstáculos, atalhos e desafios de precisão.
+Jogo de plataforma 2D em pixel art feito com Godot 4.7. Corra pela fase, colete moedas, desvie dos inimigos e use poderes temporários.
 
-## 📖 Sobre o projeto
+## Executar
 
-**Super Rush** é um jogo de plataforma 2D focado em velocidade, precisão e fases desafiadoras.
-
-O objetivo é completar cada fase no menor tempo possível, explorando movimentação rápida e controles responsivos.
-
-O visual usa pixel art de estilo retrô e os recursos incluídos nos pacotes de arte do projeto.
-
----
-
-## 🚀 Tecnologias utilizadas
-
-- Godot Engine
-- GDScript
-- Pixel Art
-- Física 2D da Godot
-
----
-
-## 🎯 Funcionalidades
-
-- Movimento com aceleração e desaceleração
-- Pulo de altura fixa, tolerância de borda (coyote time) e buffer de pulo
-- Câmera suave seguindo o jogador com limites configurados para cada fase
-- Três fases em sequência: Gramado, Floresta e Trópicos
-- Dash com recarga
-- Cronômetro e recorde local da campanha completa
-- Moedas, espinhos, checkpoint e linha de chegada
-- Rotas bônus, plataformas, moedas e obstáculos com variações geradas por seed
-- Reinício rápido da tentativa
+Abra este diretório no Godot 4.7 e execute o projeto. A tela inicial oferece idioma, tela cheia e acesso às opções.
 
 ## Controles
 
-- **A/D** ou **setas:** mover
-- **Espaço**, **W** ou **seta para cima:** pular
-- **Shift** ou **X:** dash
-- **R:** reiniciar a fase
+- **Setas esquerda/direita:** mover
+- **Espaço ou Enter:** pular
+- **Shift:** dash
+- **Esc ou P:** abrir/fechar pausa
+- **F:** atirar fogo enquanto o poder de fogo estiver ativo
+- **Seta para cima/baixo junto a uma parede:** escalar enquanto o poder de escalada estiver ativo
+- **R:** gerar novamente a extensao WFC
 
-Em **Geracao de mapa**, a seed `0` cria uma variação nova ao iniciar; informar outro valor permite repetir a mesma configuração.
+## Funcionalidades
 
-O cronômetro começa no primeiro movimento e continua entre as três fases. O recorde da campanha fica salvo localmente no arquivo de configuração do usuário da Godot.
+- Trilha chiptune original em loop, iniciada no menu e mantida entre cenas
+- Menu de pausa com continuar, reiniciar, opções de áudio/tela cheia e retorno ao título
+- Cinco vidas, cronômetro, moedas e tela de fim de jogo
+- Corações que concedem escalada ou fogo por 15 segundos
+- Câmera que acompanha o jogador
+- Extensão de fase gerada com Wave Function Collapse e seed configurável
 
----
+O Wave Function Collapse gera até 40 tiles de extensão a partir dos padrões da fase e reduz a largura se necessário para encontrar uma solução válida.

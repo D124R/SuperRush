@@ -1,0 +1,25 @@
+[remap]
+
+importer="font_data_image"
+type="FontFile"
+uid="uid://b7pkxtl2lfi2r"
+path="res://.godot/imported/pixel_font_atlas.png-32673b94d11487be3740069508e68ff5.fontdata"
+
+[deps]
+
+source_file="res://assets/ui/pixel_font_atlas.png"
+dest_files=["res://.godot/imported/pixel_font_atlas.png-32673b94d11487be3740069508e68ff5.fontdata"]
+
+[params]
+
+character_ranges=PackedStringArray("32-126", "192-195", "199", "200-203", "204-207", "209-214", "217-220", "224-227", "231-235", "236-239", "241-246", "249-252")
+kerning_pairs=PackedStringArray()
+columns=16
+rows=9
+image_margin=Rect2i(0, 0, 0, 0)
+character_margin=Rect2i(0, 0, 0, 0)
+ascent=0
+descent=0
+fallbacks=[]
+compress=true
+scaling_mode=1

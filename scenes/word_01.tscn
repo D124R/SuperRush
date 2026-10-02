@@ -1,21 +1,23 @@
-[gd_scene format=3 uid="uid://dubr1ggoousli"]
+[gd_scene format=3 uid="uid://c2en6avc0e7vn"]
 
-[ext_resource type="Texture2D" uid="uid://00dvyokgcagt" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Terrain (16 x 16).png" id="1_0wfyh"]
-[ext_resource type="Script" uid="uid://xge1wrfdi7at" path="res://word_01.gd" id="1_trceg"]
-[ext_resource type="Texture2D" uid="uid://snylne0u10q0" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Grassland_entities (16 x 16).png" id="2_sugp2"]
-[ext_resource type="PackedScene" uid="uid://bx4a2stggm0g5" path="res://preafbs/coin.tscn" id="4_a8y0u"]
-[ext_resource type="PackedScene" uid="uid://sqhlpdgwhoox" path="res://preafbs/moving_platform.tscn" id="5_jkv2x"]
-[ext_resource type="PackedScene" uid="uid://dt1w0roc1cw2v" path="res://scenes/player.tscn" id="6_jbj1t"]
-[ext_resource type="Texture2D" uid="uid://buki0r60kheod" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/5 - Sky_color.png" id="7_muem4"]
-[ext_resource type="Texture2D" uid="uid://od7fr0inrdua" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/4 - Cloud_cover_2.png" id="8_dp3eg"]
-[ext_resource type="Shader" uid="uid://sof1jdd207ev" path="res://src/shaders/word_01.gdshader" id="9_0ld40"]
-[ext_resource type="Texture2D" uid="uid://6tntrpnim16o" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/3 - Cloud_cover_1.png" id="10_gqmmt"]
-[ext_resource type="Texture2D" uid="uid://73gxo8un55a" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/2 - Hills.png" id="11_yc10j"]
-[ext_resource type="Texture2D" uid="uid://liot88j36fox" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/1 - Foreground_scenery.png" id="12_jscy8"]
-[ext_resource type="PackedScene" uid="uid://dn068bbx84ans" path="res://scenes/actors/enemy.tscn" id="13_pm3ni"]
+[ext_resource type="Script" uid="uid://xge1wrfdi7at" path="res://word_01.gd" id="1_dkunh"]
+[ext_resource type="Texture2D" uid="uid://00dvyokgcagt" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Terrain (16 x 16).png" id="1_h0y2g"]
+[ext_resource type="Texture2D" uid="uid://snylne0u10q0" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Grassland_entities (16 x 16).png" id="2_dyjo6"]
+[ext_resource type="PackedScene" uid="uid://bx4a2stggm0g5" path="res://preafbs/coin.tscn" id="3_aoyo1"]
+[ext_resource type="PackedScene" uid="uid://dt1w0roc1cw2v" path="res://scenes/player.tscn" id="3_h0y2g"]
+[ext_resource type="PackedScene" path="res://preafbs/special_heart.tscn" id="4_special_heart"]
+[ext_resource type="Texture2D" uid="uid://buki0r60kheod" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/5 - Sky_color.png" id="4_ppg0t"]
+[ext_resource type="Texture2D" uid="uid://od7fr0inrdua" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/4 - Cloud_cover_2.png" id="5_sea85"]
+[ext_resource type="Texture2D" uid="uid://6tntrpnim16o" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/3 - Cloud_cover_1.png" id="6_phuv8"]
+[ext_resource type="Shader" uid="uid://sof1jdd207ev" path="res://src/shaders/word_01.gdshader" id="6_sea85"]
+[ext_resource type="Texture2D" uid="uid://73gxo8un55a" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/2 - Hills.png" id="7_aoyo1"]
+[ext_resource type="Texture2D" uid="uid://liot88j36fox" path="res://assets/Seasonal Tilesets/Seasonal Tilesets/1 - Grassland/Background parts/1 - Foreground_scenery.png" id="8_l51d7"]
+[ext_resource type="PackedScene" uid="uid://sqhlpdgwhoox" path="res://preafbs/moving_platform.tscn" id="10_phuv8"]
+[ext_resource type="PackedScene" uid="uid://dn068bbx84ans" path="res://scenes/actors/enemy.tscn" id="12_l51d7"]
+[ext_resource type="Script" uid="uid://ix3ojpf3xmwq" path="res://wfc_generator.gd" id="13_wfc"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_dyjo6"]
-texture = ExtResource("1_0wfyh")
+texture = ExtResource("1_h0y2g")
 3:1/0 = 0
 3:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 4:1/0 = 0
@@ -87,7 +89,7 @@ texture = ExtResource("1_0wfyh")
 4:8/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_0mhmn"]
-texture = ExtResource("2_sugp2")
+texture = ExtResource("2_dyjo6")
 1:1/0 = 0
 2:1/0 = 0
 3:1/0 = 0
@@ -146,11 +148,11 @@ sources/0 = SubResource("TileSetAtlasSource_dyjo6")
 sources/1 = SubResource("TileSetAtlasSource_0mhmn")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_phuv8"]
-shader = ExtResource("9_0ld40")
+shader = ExtResource("6_sea85")
 shader_parameter/move_speed = 0.05
 
 [node name="Word-01" type="Node2D" unique_id=69450286]
-script = ExtResource("1_trceg")
+script = ExtResource("1_dkunh")
 
 [node name="Level" type="TileMap" parent="." unique_id=1037001778]
 position = Vector2(479, -84)
@@ -163,32 +165,39 @@ layer_1/tile_data = PackedInt32Array(983009, 327681, 1, 1048545, 327681, 2, 1114
 
 [node name="Coins" type="Node2D" parent="." unique_id=1805153124]
 
-[node name="Coin" parent="Coins" unique_id=138099245 instance=ExtResource("4_a8y0u")]
+[node name="Coin" parent="Coins" unique_id=138099245 instance=ExtResource("3_aoyo1")]
 position = Vector2(80, 135)
 
-[node name="Coin2" parent="Coins" unique_id=248620612 instance=ExtResource("4_a8y0u")]
+[node name="Coin2" parent="Coins" unique_id=248620612 instance=ExtResource("3_aoyo1")]
 position = Vector2(81, 102)
 
-[node name="Coin3" parent="Coins" unique_id=433985208 instance=ExtResource("4_a8y0u")]
+[node name="Coin3" parent="Coins" unique_id=433985208 instance=ExtResource("3_aoyo1")]
 position = Vector2(82, 61)
 
-[node name="Coin4" parent="Coins" unique_id=1480368751 instance=ExtResource("4_a8y0u")]
+[node name="Coin4" parent="Coins" unique_id=1480368751 instance=ExtResource("3_aoyo1")]
 position = Vector2(119, 61)
 
-[node name="Coin5" parent="Coins" unique_id=2034149748 instance=ExtResource("4_a8y0u")]
+[node name="Coin5" parent="Coins" unique_id=2034149748 instance=ExtResource("3_aoyo1")]
 position = Vector2(156, 60)
 
-[node name="Coin6" parent="Coins" unique_id=1171580684 instance=ExtResource("4_a8y0u")]
+[node name="Coin6" parent="Coins" unique_id=1171580684 instance=ExtResource("3_aoyo1")]
 position = Vector2(156, 60)
 
-[node name="moving_platform" parent="." unique_id=5090608 instance=ExtResource("5_jkv2x")]
+[node name="WallClimbHeart" parent="." instance=ExtResource("4_special_heart")]
+position = Vector2(260, 105)
+
+[node name="FirePowerHeart" parent="." instance=ExtResource("4_special_heart")]
+position = Vector2(470, 95)
+power_type = 1
+
+[node name="moving_platform" parent="." unique_id=5090608 instance=ExtResource("10_phuv8")]
 position = Vector2(162, 56)
 
-[node name="moving_platform2" parent="." unique_id=1581313172 instance=ExtResource("5_jkv2x")]
+[node name="moving_platform2" parent="." unique_id=1581313172 instance=ExtResource("10_phuv8")]
 position = Vector2(94, 56)
 move_horizontal = false
 
-[node name="player" parent="." unique_id=1009301341 instance=ExtResource("6_jbj1t")]
+[node name="player" parent="." unique_id=1009301341 instance=ExtResource("3_h0y2g")]
 position = Vector2(-16, -80)
 
 [node name="BG" type="ParallaxBackground" parent="." unique_id=1014780845]
@@ -200,7 +209,7 @@ motion_mirroring = Vector2(432, 0)
 
 [node name="texture" type="Sprite2D" parent="BG/05" unique_id=83551560]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("7_muem4")
+texture = ExtResource("4_ppg0t")
 centered = false
 
 [node name="04" type="ParallaxLayer" parent="BG" unique_id=1632219030]
@@ -210,7 +219,7 @@ motion_mirroring = Vector2(432, 0)
 
 [node name="back_cloud" type="Sprite2D" parent="BG/04" unique_id=190439211]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("8_dp3eg")
+texture = ExtResource("5_sea85")
 centered = false
 
 [node name="03" type="ParallaxLayer" parent="BG" unique_id=1554706210]
@@ -222,7 +231,7 @@ motion_mirroring = Vector2(432, 0)
 texture_repeat = 2
 material = SubResource("ShaderMaterial_phuv8")
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("10_gqmmt")
+texture = ExtResource("6_phuv8")
 centered = false
 
 [node name="02" type="ParallaxLayer" parent="BG" unique_id=1965154318]
@@ -232,7 +241,7 @@ motion_mirroring = Vector2(432, 0)
 
 [node name="texture" type="Sprite2D" parent="BG/02" unique_id=668674177]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("11_yc10j")
+texture = ExtResource("7_aoyo1")
 centered = false
 
 [node name="01" type="ParallaxLayer" parent="BG" unique_id=981052775]
@@ -242,17 +251,23 @@ motion_mirroring = Vector2(432, 0)
 
 [node name="texture" type="Sprite2D" parent="BG/01" unique_id=2050558595]
 scale = Vector2(1.5, 1.5)
-texture = ExtResource("12_jscy8")
+texture = ExtResource("8_l51d7")
 centered = false
 
-[node name="enemy" parent="." unique_id=338273373 instance=ExtResource("13_pm3ni")]
+[node name="enemy" parent="." unique_id=338273373 instance=ExtResource("12_l51d7")]
 position = Vector2(737, 140)
 
-[node name="enemy2" parent="." unique_id=1667817132 instance=ExtResource("13_pm3ni")]
+[node name="enemy2" parent="." unique_id=1667817132 instance=ExtResource("12_l51d7")]
 position = Vector2(646, 188)
 
 [node name="camera" type="Camera2D" parent="." unique_id=254303358]
+visible = false
 position = Vector2(1, 100)
+anchor_mode = 0
+zoom = Vector2(2, 2)
 limit_smoothed = true
 position_smoothing_enabled = true
 editor_draw_limits = true
+
+[node name="WFCGenerator" type="Node" parent="."]
+script = ExtResource("13_wfc")

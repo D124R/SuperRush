@@ -1,0 +1,104 @@
+[gd_scene load_steps=6 format=3 uid="uid://8x4dd2fpyiar"]
+
+[ext_resource type="Script" path="res://src/title_screen.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dy7quunsh8uht" path="res://title-screen.jpg" id="1_kn8cw"]
+[ext_resource type="Texture2D" uid="uid://5uq62s5wl813" path="res://game_logo.png" id="2_fa3l5"]
+[ext_resource type="Texture2D" uid="uid://c7vvyodd5pwrg" path="res://assets/Sprite Pack 2/Sprite Pack 2/2 - Mr. Mochi/Jumping (32 x 32).png" id="3_5c3qn"]
+
+[sub_resource type="Theme" id="Theme_l64r7"]
+Button/colors/font_color = Color(1, 1, 1, 1)
+Button/fonts/font = null
+
+[node name="TitleScreen" type="Control" unique_id=2079490227]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="bg" type="TextureRect" parent="." unique_id=1520058831]
+layout_mode = 0
+offset_right = 640.0
+offset_bottom = 320.0
+texture = ExtResource("1_kn8cw")
+expand_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=181084110]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=58431707]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer" unique_id=1574032832]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="game_logo" type="TextureRect" parent="MarginContainer/HBoxContainer/VBoxContainer" unique_id=168974381]
+layout_mode = 2
+texture = ExtResource("2_fa3l5")
+
+[node name="start_btn" type="Button" parent="MarginContainer/HBoxContainer/VBoxContainer" unique_id=1082719842]
+layout_mode = 2
+theme = SubResource("Theme_l64r7")
+text = "START"
+
+[node name="options_btn" type="Button" parent="MarginContainer/HBoxContainer/VBoxContainer" unique_id=585908697]
+layout_mode = 2
+text = "OPCOES"
+
+[node name="language_btn" type="Button" parent="MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "IDIOMA: PT-BR"
+
+[node name="quit_btn" type="Button" parent="MarginContainer/HBoxContainer/VBoxContainer" unique_id=1694363047]
+layout_mode = 2
+text = "SAIR"
+
+[node name="mochi" type="TextureRect" parent="MarginContainer/HBoxContainer" unique_id=423932265]
+layout_mode = 2
+texture = ExtResource("3_5c3qn")
+expand_mode = 2
+flip_h = true
+
+[node name="OptionsPanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -65.0
+offset_right = 140.0
+offset_bottom = 65.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="OptionsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="OptionsTitle" type="Label" parent="OptionsPanel/Content"]
+layout_mode = 2
+text = "OPCOES"
+horizontal_alignment = 1
+
+[node name="FullscreenToggle" type="CheckButton" parent="OptionsPanel/Content"]
+layout_mode = 2
+text = "Tela cheia"
+alignment = 1
+
+[node name="CloseButton" type="Button" parent="OptionsPanel/Content"]
+layout_mode = 2
+text = "Voltar"

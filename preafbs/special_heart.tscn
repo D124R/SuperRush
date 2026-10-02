@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/special_heart.gd" id="1_special_heart"]
+[ext_resource type="Texture2D" path="res://assets/Mini FX, Items & UI/Mini FX, Items & UI/Common Pick-ups/Heart_Spin (16 x 16).png" id="2_heart"]
+[ext_resource type="Font" path="res://assets/ui/pixel_font_atlas.png" id="3_font"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_heart"]
+radius = 12.0
+
+[node name="SpecialHeart" type="Area2D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_special_heart")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_heart")
+hframes = 4
+scale = Vector2(1.5, 1.5)
+
+[node name="Symbol" type="Label" parent="."]
+offset_left = -5.0
+offset_top = -7.0
+offset_right = 5.0
+offset_bottom = 7.0
+theme_override_colors/font_color = Color(0.035, 0.07, 0.1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_heart")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
