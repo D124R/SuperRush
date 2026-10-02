@@ -5,6 +5,8 @@ const BACKGROUND_TEXTURE: Texture2D = preload("res://assets/Seasonal Tilesets/Se
 const COIN_TEXTURE: Texture2D = preload("res://assets/Mini FX, Items & UI/Mini FX, Items & UI/Common Pick-ups/Coin (16 x 16).png")
 const RECORD_PATH: String = "user://super_rush_records.cfg"
 const FINISH_X: float = 2940.0
+const MAX_LIVES: int = 5
+const DAMAGE_COOLDOWN: float = 1.0
 
 @onready var level: Node2D = $Level
 
@@ -13,13 +15,18 @@ var timer_label: Label
 var stats_label: Label
 var status_label: Label
 var best_label: Label
+var life_meter: Control
+var game_over_overlay: ColorRect
 var elapsed_time: float = 0.0
 var best_time: float = 0.0
 var death_count: int = 0
 var coin_count: int = 0
+var lives: int = MAX_LIVES
+var damage_cooldown: float = 0.0
 var checkpoint_position: Vector2 = Vector2(48.0, 208.0)
 var timer_running: bool = false
 var run_finished: bool = false
+var game_over: bool = false
 var animated_coins: Array[Sprite2D] = []
 
 
@@ -33,6 +40,12 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if damage_cooldown > 0.0:
+		damage_cooldown = maxf(damage_cooldown - delta, 0.0)
+		player.sprite.visible = int(damage_cooldown * 12.0) % 2 == 0
+		if damage_cooldown == 0.0:
+			player.sprite.visible = true
+
 	if timer_running and not run_finished:
 		elapsed_time += delta
 		timer_label.text = "TEMPO  %s" % _format_time(elapsed_time)
@@ -42,7 +55,7 @@ func _process(delta: float) -> void:
 		if is_instance_valid(coin_sprite):
 			coin_sprite.frame = coin_frame
 
-	if player != null and player.global_position.y > 310.0:
+	if player != null and player.global_position.y > 310.0 and not game_over:
 		_respawn_player()
 
 
@@ -305,15 +318,59 @@ func _create_hud() -> void:
 
 	var panel := ColorRect.new()
 	panel.position = Vector2(8, 8)
-	panel.size = Vector2(202, 62)
+	panel.size = Vector2(202, 94)
 	panel.color = Color(0.08, 0.13, 0.18, 0.86)
 	hud.add_child(panel)
 
 	timer_label = _add_label(hud, Vector2(16, 12), Vector2(188, 21), "TEMPO  00:00.00", 16)
-	stats_label = _add_label(hud, Vector2(16, 34), Vector2(188, 16), "MOEDAS  0    QUEDAS  0", 11)
-	best_label = _add_label(hud, Vector2(16, 49), Vector2(188, 16), "RECORDE  --:--.--", 11)
+	_add_label(hud, Vector2(16, 35), Vector2(40, 14), "VIDAS", 11)
+	var life_meter_script: Script = load("res://src/life_meter.gd")
+	life_meter = Control.new()
+	life_meter.position = Vector2(60, 37)
+	life_meter.custom_minimum_size = Vector2(78, 12)
+	life_meter.set_script(life_meter_script)
+	hud.add_child(life_meter)
+	life_meter.call("set_lives", lives)
+
+	var coin_icon := Sprite2D.new()
+	coin_icon.texture = COIN_TEXTURE
+	coin_icon.hframes = 4
+	coin_icon.frame = 0
+	coin_icon.position = Vector2(24, 64)
+	hud.add_child(coin_icon)
+	animated_coins.append(coin_icon)
+
+	stats_label = _add_label(hud, Vector2(38, 57), Vector2(164, 16), "MOEDAS  000  QUEDAS  0", 11)
+	best_label = _add_label(hud, Vector2(16, 76), Vector2(188, 16), "RECORDE  --:--.--", 11)
 	status_label = _add_label(hud, Vector2(216, 12), Vector2(254, 18), "A/D ou setas: correr", 11)
 	_add_label(hud, Vector2(216, 29), Vector2(254, 18), "Espaco: pular    Shift/X: dash    R: reiniciar", 9)
+
+	game_over_overlay = ColorRect.new()
+	game_over_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	game_over_overlay.color = Color(0.02, 0.04, 0.08, 0.8)
+	game_over_overlay.visible = false
+	hud.add_child(game_over_overlay)
+
+	var game_over_panel := PanelContainer.new()
+	game_over_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	game_over_panel.position = Vector2(-110, -42)
+	game_over_panel.size = Vector2(220, 84)
+	game_over_overlay.add_child(game_over_panel)
+
+	var game_over_content := VBoxContainer.new()
+	game_over_content.alignment = BoxContainer.ALIGNMENT_CENTER
+	game_over_panel.add_child(game_over_content)
+
+	var game_over_label := Label.new()
+	game_over_label.text = "FIM DE JOGO"
+	game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	game_over_content.add_child(game_over_label)
+
+	var retry_button := Button.new()
+	retry_button.text = "TENTAR DE NOVO"
+	retry_button.pressed.connect(_on_retry_pressed)
+	game_over_content.add_child(retry_button)
+
 	_update_hud()
 
 
@@ -334,7 +391,7 @@ func _on_run_started() -> void:
 
 
 func _on_hazard_entered(body: Node2D) -> void:
-	if body == player and not run_finished:
+	if body == player and not run_finished and not game_over:
 		_respawn_player()
 
 
@@ -354,7 +411,7 @@ func _on_checkpoint_entered(body: Node2D, at_position: Vector2) -> void:
 
 
 func _on_finish_entered(body: Node2D) -> void:
-	if body != player or run_finished:
+	if body != player or run_finished or game_over:
 		return
 	run_finished = true
 	timer_running = false
@@ -366,19 +423,35 @@ func _on_finish_entered(body: Node2D) -> void:
 
 
 func _respawn_player() -> void:
-	if run_finished:
+	if run_finished or game_over or damage_cooldown > 0.0:
 		return
 	death_count += 1
+	lives = maxi(lives - 1, 0)
 	player.respawn(checkpoint_position)
-	status_label.text = "De volta ao checkpoint! Tente outra rota."
+	damage_cooldown = DAMAGE_COOLDOWN
+	player.sprite.visible = true
 	_update_hud()
+	if lives == 0:
+		game_over = true
+		timer_running = false
+		player.set_physics_process(false)
+		status_label.text = "Sem vidas! R para reiniciar."
+		game_over_overlay.visible = true
+		return
+	status_label.text = "De volta ao checkpoint! Tente outra rota."
 
 
 func _update_hud() -> void:
 	if stats_label != null:
-		stats_label.text = "MOEDAS  %d    QUEDAS  %d" % [coin_count, death_count]
+		stats_label.text = "MOEDAS  %03d  QUEDAS  %d" % [coin_count, death_count]
+	if life_meter != null:
+		life_meter.call("set_lives", lives)
 	if best_label != null:
 		best_label.text = "RECORDE  %s" % (_format_time(best_time) if best_time > 0.0 else "--:--.--")
+
+
+func _on_retry_pressed() -> void:
+	get_tree().reload_current_scene()
 
 
 func _format_time(seconds: float) -> String:
