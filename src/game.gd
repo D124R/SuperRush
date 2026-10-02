@@ -452,6 +452,7 @@ func _respawn_player() -> void:
 	death_count += 1
 	lives = maxi(lives - 1, 0)
 	player.respawn(checkpoint_position)
+	player.play_hurt()
 	damage_cooldown = DAMAGE_COOLDOWN
 	player.sprite.visible = true
 	if is_instance_valid(damage_flash):

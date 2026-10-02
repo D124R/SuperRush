@@ -6,6 +6,7 @@ signal run_started
 const IDLE_TEXTURE: Texture2D = preload("res://assets/Sprite Pack 2/Sprite Pack 2/2 - Mr. Mochi/Idle (32 x 32).png")
 const RUN_TEXTURE: Texture2D = preload("res://assets/Sprite Pack 2/Sprite Pack 2/2 - Mr. Mochi/Running (32 x 32).png")
 const JUMP_TEXTURE: Texture2D = preload("res://assets/Sprite Pack 2/Sprite Pack 2/2 - Mr. Mochi/Jumping (32 x 32).png")
+const HURT_TEXTURE: Texture2D = preload("res://assets/Sprite Pack 2/Sprite Pack 2/2 - Mr. Mochi/Hurt (32 x 32).png")
 
 const RUN_SPEED: float = 285.0
 const ACCELERATION: float = 1900.0
@@ -26,9 +27,11 @@ var jump_buffer_timer: float = 0.0
 var dash_timer: float = 0.0
 var dash_cooldown_timer: float = 0.0
 var run_has_started: bool = false
+var hurt_timer: float = 0.0
 
 
 func _physics_process(delta: float) -> void:
+	hurt_timer = maxf(hurt_timer - delta, 0.0)
 	var direction: float = Input.get_axis("move_left", "move_right")
 	if direction != 0.0:
 		facing = signf(direction)
@@ -81,6 +84,11 @@ func respawn(at_position: Vector2) -> void:
 	dash_timer = 0.0
 
 
+func play_hurt() -> void:
+	hurt_timer = 0.3
+	_set_sprite(HURT_TEXTURE, 1)
+
+
 func _start_run() -> void:
 	if run_has_started:
 		return
@@ -90,6 +98,9 @@ func _start_run() -> void:
 
 func _update_animation(direction: float) -> void:
 	sprite.flip_h = facing < 0.0
+	if hurt_timer > 0.0:
+		_set_sprite(HURT_TEXTURE, 1)
+		return
 	if not is_on_floor():
 		_set_sprite(JUMP_TEXTURE, 1)
 	elif absf(direction) > 0.0:
