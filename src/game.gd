@@ -390,12 +390,7 @@ func _spawn_player() -> void:
 	player.position = checkpoint_position
 	player.run_started.connect(_on_run_started)
 	level.add_child(player)
-	player.camera.limit_left = 0
-	player.camera.limit_top = -80
-	player.camera.limit_right = roundi(stage_finish_x + 240.0)
-	player.camera.limit_bottom = 320
-	player.camera.offset = Vector2(0.0, -24.0)
-	player.camera.make_current()
+	player.configure_camera(roundi(stage_finish_x + 240.0))
 
 
 func _create_hud() -> void:
@@ -404,47 +399,47 @@ func _create_hud() -> void:
 
 	var panel := ColorRect.new()
 	panel.position = Vector2(8, 8)
-	panel.size = Vector2(168, 66)
+	panel.size = Vector2(192, 82)
 	panel.color = Color(0.08, 0.13, 0.18, 0.86)
 	hud.add_child(panel)
 
-	timer_label = _add_label(hud, Vector2(16, 12), Vector2(156, 15), "TEMPO  00:00.00", 8)
-	best_label = _add_label(hud, Vector2(16, 29), Vector2(156, 12), "RECORDE  --:--.--", 8)
+	timer_label = _add_label(hud, Vector2(16, 10), Vector2(176, 22), "TEMPO  00:00.00", 12)
+	best_label = _add_label(hud, Vector2(16, 35), Vector2(168, 16), "RECORDE  --:--.--", 10)
 	var coin_icon := Sprite2D.new()
 	coin_icon.texture = COIN_TEXTURE
 	coin_icon.hframes = 4
 	coin_icon.frame = 0
-	coin_icon.position = Vector2(23, 51)
+	coin_icon.position = Vector2(23, 65)
 	hud.add_child(coin_icon)
 	animated_coins.append(coin_icon)
-	stats_label = _add_label(hud, Vector2(34, 45), Vector2(136, 12), "MOEDAS  000  QUEDAS  0", 8)
+	stats_label = _add_label(hud, Vector2(36, 58), Vector2(156, 18), "MOEDAS  000  QUEDAS  0", 9)
 
 	var life_panel := ColorRect.new()
 	life_panel.anchor_left = 1.0
 	life_panel.anchor_right = 1.0
-	life_panel.offset_left = -154.0
+	life_panel.offset_left = -192.0
 	life_panel.offset_top = 8.0
 	life_panel.offset_right = -8.0
-	life_panel.offset_bottom = 42.0
+	life_panel.offset_bottom = 58.0
 	life_panel.color = Color(0.08, 0.13, 0.18, 0.86)
 	hud.add_child(life_panel)
 	_add_label(
 		life_panel,
 		Vector2(8, 9),
-		Vector2(48, 16),
+		Vector2(168, 16),
 		"VIDAS",
-		8
+		10
 	)
 	var life_meter_script: Script = load("res://src/life_meter.gd")
 	life_meter = Control.new()
-	life_meter.position = Vector2(60, 12)
-	life_meter.custom_minimum_size = Vector2(78, 12)
+	life_meter.position = Vector2(8, 30)
+	life_meter.custom_minimum_size = Vector2(92, 16)
 	life_meter.set_script(life_meter_script)
 	life_panel.add_child(life_meter)
 	life_meter.call("set_lives", lives)
 
-	status_label = _add_label(hud, Vector2(216, 12), Vector2(254, 18), "A/D ou setas: correr", 11)
-	_add_label(hud, Vector2(216, 29), Vector2(254, 18), "Espaco: pular    Shift/X: dash    R: reiniciar", 9)
+	status_label = _add_label(hud, Vector2(216, 12), Vector2(254, 18), "A/D ou setas: correr", 10)
+	_add_label(hud, Vector2(216, 30), Vector2(254, 18), "Espaco: pular    Shift/X: dash    R: reiniciar", 8)
 	stage_label = _add_label(hud, Vector2(216, 48), Vector2(254, 16), _stage_heading(), 9)
 
 	damage_flash = ColorRect.new()

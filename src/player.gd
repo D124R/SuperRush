@@ -11,7 +11,7 @@ const HURT_TEXTURE: Texture2D = preload("res://assets/Sprite Pack 2/Sprite Pack 
 const RUN_SPEED: float = 285.0
 const ACCELERATION: float = 1900.0
 const FRICTION: float = 2300.0
-const JUMP_SPEED: float = -480.0
+const JUMP_SPEED: float = -420.0
 const GRAVITY: float = 1200.0
 const COYOTE_TIME: float = 0.11
 const JUMP_BUFFER_TIME: float = 0.12
@@ -80,6 +80,20 @@ func respawn(at_position: Vector2) -> void:
 	global_position = at_position
 	velocity = Vector2.ZERO
 	dash_timer = 0.0
+
+
+func configure_camera(right_limit: int) -> void:
+	camera.enabled = true
+	camera.limit_left = -240
+	camera.limit_top = -120
+	camera.limit_right = right_limit
+	camera.limit_bottom = 320
+	camera.offset = Vector2(0.0, -12.0)
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = 8.0
+	camera.process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
+	camera.make_current()
+	camera.reset_smoothing()
 
 
 func play_hurt() -> void:
