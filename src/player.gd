@@ -23,7 +23,6 @@ var is_jumping := false
 var facing_direction := 1.0
 var dash_time_left := 0.0
 var has_started_run := false
-var dash_key_was_pressed := false
 var lives: int = MAX_LIVES
 var spawn_position: Vector2
 var invulnerability_time_left := 0.0
@@ -43,6 +42,12 @@ func _ready() -> void:
 	fire_key.physical_keycode = KEY_F
 	if not InputMap.action_has_event("cast_fire", fire_key):
 		InputMap.action_add_event("cast_fire", fire_key)
+	if not InputMap.has_action("dash"):
+		InputMap.add_action("dash")
+	var dash_key := InputEventKey.new()
+	dash_key.physical_keycode = KEY_SHIFT
+	if not InputMap.action_has_event("dash", dash_key):
+		InputMap.action_add_event("dash", dash_key)
 
 func _physics_process(delta: float) -> void:
 	_update_special_power_timers(delta)
@@ -58,9 +63,7 @@ func _physics_process(delta: float) -> void:
 
 	var direction := Input.get_axis("ui_left", "ui_right")
 	var jump_pressed := Input.is_action_just_pressed("ui_accept")
-	var dash_key_pressed := Input.is_key_pressed(KEY_SHIFT)
-	var dash_pressed := dash_key_pressed and not dash_key_was_pressed
-	dash_key_was_pressed = dash_key_pressed
+	var dash_pressed := Input.is_action_just_pressed("dash")
 
 	if not has_started_run and (direction != 0.0 or jump_pressed or dash_pressed):
 		has_started_run = true

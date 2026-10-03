@@ -15,6 +15,7 @@ Abra este diretório no Godot 4.7 e execute o projeto. A tela inicial oferece id
 - **F:** atirar fogo enquanto o poder de fogo estiver ativo
 - **Seta para cima/baixo junto a uma parede:** escalar enquanto o poder de escalada estiver ativo
 - **R:** gerar novamente a extensao WFC
+- **Celular:** direcional virtual, pulo, dash, fogo e botão de pausa na tela
 
 ## Funcionalidades
 
@@ -26,3 +27,11 @@ Abra este diretório no Godot 4.7 e execute o projeto. A tela inicial oferece id
 - Extensão de fase gerada com Wave Function Collapse e seed configurável
 
 O Wave Function Collapse gera até 40 tiles de extensão a partir dos padrões da fase e reduz a largura se necessário para encontrar uma solução válida.
+
+## Exportar para Android
+
+O preset **Android** já está disponível em `Projeto > Exportar`. Instale os templates de exportação da mesma versão do Godot usada pelo projeto (4.7) e configure um JDK e o Android SDK com `platform-tools` e `build-tools` nas configurações do editor antes de exportar o APK.
+
+## Executar no Windows
+
+O preset **Windows Desktop** gera um executável x64 independente em `build/SuperRush.exe`, com os recursos do jogo incorporados. Ele pode ser aberto diretamente no Windows, sem iniciar o projeto pelo editor.

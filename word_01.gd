@@ -15,6 +15,7 @@ var special_power_label: Label
 var coin_count: int = 0
 var game_over_overlay: ColorRect
 var pause_menu: Control
+var mobile_controls: Control
 var damage_flash: ColorRect
 var damage_flash_time_left := 0.0
 
@@ -91,6 +92,7 @@ func _create_hud() -> void:
 	pause_button.offset_bottom = 104
 	pause_button.add_theme_font_size_override("font_size", 12)
 	pause_button.pressed.connect(_toggle_pause)
+	pause_button.visible = DisplayServer.is_touchscreen_available()
 	canvas.add_child(pause_button)
 
 	damage_flash = ColorRect.new()
@@ -239,6 +241,11 @@ func _create_hud() -> void:
 	pause_menu.connect("exit_requested", _exit_to_title)
 	canvas.add_child(pause_menu)
 
+	var mobile_controls_script: Script = load("res://src/mobile_controls.gd")
+	mobile_controls = Control.new()
+	mobile_controls.set_script(mobile_controls_script)
+	canvas.add_child(mobile_controls)
+
 
 func _toggle_pause() -> void:
 	if game_over_overlay.visible:
@@ -247,6 +254,7 @@ func _toggle_pause() -> void:
 		_resume_game()
 		return
 	pause_menu.visible = true
+	mobile_controls.visible = false
 	get_tree().paused = true
 	get_node("/root/MusicManager").call("pause_music")
 	pause_menu.call("focus_default")
@@ -255,6 +263,10 @@ func _toggle_pause() -> void:
 func _resume_game() -> void:
 	get_tree().paused = false
 	pause_menu.visible = false
+	mobile_controls.call(
+		"set_touch_controls_enabled",
+		DisplayServer.is_touchscreen_available()
+	)
 	get_node("/root/MusicManager").call("resume_music")
 
 
@@ -342,6 +354,7 @@ func _on_special_powers_changed(wall_climb_seconds: int, fire_seconds: int) -> v
 
 func _on_game_over() -> void:
 	timer_running = false
+	mobile_controls.visible = false
 	game_over_overlay.visible = true
 
 
