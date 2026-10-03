@@ -30,7 +30,7 @@ func _ready() -> void:
 		coin.connect("collected", _on_coin_collected)
 	_create_hud()
 	_configure_player_camera()
-	_on_special_powers_changed(0, 0)
+	_on_special_powers_changed(0, 0, 0)
 
 
 func _process(delta: float) -> void:
@@ -340,14 +340,20 @@ func _on_coin_collected() -> void:
 	coin_label.text = "x %03d" % coin_count
 
 
-func _on_special_powers_changed(wall_climb_seconds: int, fire_seconds: int) -> void:
+func _on_special_powers_changed(
+	wall_climb_seconds: int,
+	fire_seconds: int,
+	super_jump_seconds: int
+) -> void:
 	var active_powers: Array[String] = []
 	if wall_climb_seconds > 0:
 		active_powers.append("PAREDE %ds" % wall_climb_seconds)
 	if fire_seconds > 0:
 		active_powers.append("FOGO %ds" % fire_seconds)
+	if super_jump_seconds > 0:
+		active_powers.append("SUPER PULO %ds" % super_jump_seconds)
 	if active_powers.is_empty():
-		special_power_label.text = "CIMA + LADO: ESCALAR  |  F: FOGO"
+		special_power_label.text = "CIMA + LADO: ESCALAR  |  F: FOGO  |  SUPER PULO"
 	else:
 		special_power_label.text = "  ".join(active_powers)
 

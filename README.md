@@ -34,4 +34,4 @@ O preset **Android** já está disponível em `Projeto > Exportar`. Instale os t
 
 ## Executar no Windows
 
-O preset **Windows Desktop** gera um executável x64 independente em `build/SuperRush.exe`, com os recursos do jogo incorporados. Ele pode ser aberto diretamente no Windows, sem iniciar o projeto pelo editor.
+O preset **Windows Desktop** gera `build/SuperRush.exe` e o pacote de recursos `build/SuperRush.pck`. Mantenha os dois arquivos na mesma pasta para jogar sem iniciar o projeto pelo editor.

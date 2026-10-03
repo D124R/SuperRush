@@ -190,6 +190,10 @@ position = Vector2(260, 105)
 position = Vector2(470, 95)
 power_type = 1
 
+[node name="SuperJumpHeart" parent="." instance=ExtResource("4_special_heart")]
+position = Vector2(620, 110)
+power_type = 2
+
 [node name="moving_platform" parent="." unique_id=5090608 instance=ExtResource("10_phuv8")]
 position = Vector2(162, 56)
 

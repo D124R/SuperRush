@@ -4,7 +4,11 @@ signal run_started
 signal lives_changed(value: int)
 signal damaged
 signal game_over
-signal special_powers_changed(wall_climb_seconds: int, fire_seconds: int)
+signal special_powers_changed(
+	wall_climb_seconds: int,
+	fire_seconds: int,
+	super_jump_seconds: int
+)
 
 const SPEED := 230.0
 const JUMP_FORCE := -420.0
@@ -14,6 +18,7 @@ const MAX_LIVES := 5
 const INVULNERABILITY_DURATION := 1.2
 const SPECIAL_POWER_DURATION := 15.0
 const WALL_CLIMB_SPEED := 150.0
+const SUPER_JUMP_MULTIPLIER := 1.7
 const FIREBALL_COOLDOWN := 0.45
 const FIREBALL_SCENE: PackedScene = preload("res://preafbs/fireball.tscn")
 
@@ -29,9 +34,11 @@ var invulnerability_time_left := 0.0
 var hurt_animation_time_left := 0.0
 var wall_climb_time_left := 0.0
 var fire_power_time_left := 0.0
+var super_jump_time_left := 0.0
 var fireball_cooldown_time_left := 0.0
 var displayed_wall_seconds := 0
 var displayed_fire_seconds := 0
+var displayed_super_jump_seconds := 0
 
 func _ready() -> void:
 	add_to_group("player")
@@ -97,7 +104,9 @@ func _physics_process(delta: float) -> void:
 			velocity += get_gravity() * delta
 
 		if jump_pressed and is_on_floor():
-			velocity.y = JUMP_FORCE
+			velocity.y = JUMP_FORCE * (
+				SUPER_JUMP_MULTIPLIER if super_jump_time_left > 0.0 else 1.0
+			)
 			is_jumping = true
 		elif is_on_floor():
 			is_jumping = false
@@ -124,6 +133,8 @@ func grant_special_power(power_type: int) -> void:
 			wall_climb_time_left = SPECIAL_POWER_DURATION
 		1:
 			fire_power_time_left = SPECIAL_POWER_DURATION
+		2:
+			super_jump_time_left = SPECIAL_POWER_DURATION
 		_:
 			push_warning("Tipo de coracao especial desconhecido: %d" % power_type)
 			return
@@ -133,16 +144,27 @@ func grant_special_power(power_type: int) -> void:
 func _update_special_power_timers(delta: float) -> void:
 	wall_climb_time_left = maxf(wall_climb_time_left - delta, 0.0)
 	fire_power_time_left = maxf(fire_power_time_left - delta, 0.0)
+	super_jump_time_left = maxf(super_jump_time_left - delta, 0.0)
 	var wall_seconds := ceili(wall_climb_time_left)
 	var fire_seconds := ceili(fire_power_time_left)
-	if wall_seconds != displayed_wall_seconds or fire_seconds != displayed_fire_seconds:
+	var super_jump_seconds := ceili(super_jump_time_left)
+	if (
+		wall_seconds != displayed_wall_seconds
+		or fire_seconds != displayed_fire_seconds
+		or super_jump_seconds != displayed_super_jump_seconds
+	):
 		_emit_special_powers_changed()
 
 
 func _emit_special_powers_changed() -> void:
 	displayed_wall_seconds = ceili(wall_climb_time_left)
 	displayed_fire_seconds = ceili(fire_power_time_left)
-	special_powers_changed.emit(displayed_wall_seconds, displayed_fire_seconds)
+	displayed_super_jump_seconds = ceili(super_jump_time_left)
+	special_powers_changed.emit(
+		displayed_wall_seconds,
+		displayed_fire_seconds,
+		displayed_super_jump_seconds
+	)
 
 
 func _shoot_fireball() -> void:

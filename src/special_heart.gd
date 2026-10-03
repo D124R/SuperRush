@@ -1,6 +1,6 @@
 extends Area2D
 
-@export_enum("Escalar paredes", "Poder de fogo") var power_type: int = 0
+@export_enum("Escalar paredes", "Poder de fogo", "Super pulo") var power_type: int = 0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var symbol: Label = $Symbol
@@ -12,8 +12,16 @@ var start_y := 0.0
 func _ready() -> void:
 	add_to_group("special_hearts")
 	start_y = position.y
-	sprite.modulate = Color("#70f4ff") if power_type == 0 else Color("#ffae55")
-	symbol.text = "^" if power_type == 0 else "F"
+	match power_type:
+		0:
+			sprite.modulate = Color("#70f4ff")
+			symbol.text = "^"
+		1:
+			sprite.modulate = Color("#ffae55")
+			symbol.text = "F"
+		2:
+			sprite.modulate = Color("#ff78c8")
+			symbol.text = "J"
 
 
 func _process(_delta: float) -> void:
