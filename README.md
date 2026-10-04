@@ -16,10 +16,11 @@ Abra este diretório no Godot 4.7 e execute o projeto. A tela inicial oferece id
 - **Seta para cima/baixo junto a uma parede:** escalar enquanto o poder de escalada estiver ativo
 - **R:** gerar novamente a extensao WFC
 - **Celular:** direcional virtual, pulo, dash, fogo e botão de pausa na tela
+- **Controles de toque:** botões maiores, com cores fortes por ação e contorno visível
 
 ## Funcionalidades
 
-- Trilha chiptune original em loop, iniciada no menu e mantida entre cenas
+- Trilha em OGG enviada pelo desenvolvedor, reproduzida em loop do menu ao jogo
 - Menu de pausa com continuar, reiniciar, opções de áudio/tela cheia e retorno ao título
 - Cinco vidas, cronômetro, moedas e tela de fim de jogo
 - Corações que concedem escalada ou fogo por 15 segundos

@@ -1,7 +1,6 @@
 extends Control
 
-const BUTTON_COLOR := Color(0.08, 0.14, 0.22, 0.72)
-const BUTTON_BORDER := Color(0.72, 0.84, 0.95, 0.78)
+const BUTTON_BORDER := Color("#fff4d6")
 
 var action_buttons: Array[Button] = []
 
@@ -17,14 +16,14 @@ func set_touch_controls_enabled(enabled: bool) -> void:
 	if not enabled or not action_buttons.is_empty():
 		return
 
-	_create_direction_button("<", "ui_left", 12.0, -116.0, 66.0, -62.0)
-	_create_direction_button(">", "ui_right", 124.0, -116.0, 178.0, -62.0)
-	_create_direction_button("^", "ui_up", 68.0, -172.0, 122.0, -118.0)
-	_create_direction_button("v", "ui_down", 68.0, -60.0, 122.0, -6.0)
+	_create_direction_button("<", "ui_left", 10.0, -155.0, 78.0, -87.0)
+	_create_direction_button(">", "ui_right", 104.0, -155.0, 172.0, -87.0)
+	_create_direction_button("^", "ui_up", 57.0, -223.0, 125.0, -155.0)
+	_create_direction_button("v", "ui_down", 57.0, -87.0, 125.0, -19.0)
 
-	_create_action_button("PULO", "ui_accept", -82.0, -82.0, -12.0, -12.0)
-	_create_action_button("DASH", "dash", -156.0, -156.0, -86.0, -86.0)
-	_create_action_button("FOGO", "cast_fire", -82.0, -156.0, -12.0, -86.0)
+	_create_action_button("PULO", "ui_accept", -98.0, -98.0, -12.0, -12.0)
+	_create_action_button("DASH", "dash", -196.0, -196.0, -102.0, -102.0)
+	_create_action_button("FOGO", "cast_fire", -98.0, -196.0, -12.0, -102.0)
 
 
 func _create_direction_button(
@@ -44,7 +43,8 @@ func _create_direction_button(
 		top,
 		right,
 		bottom,
-		14
+		20,
+		Color("#087ab8")
 	)
 
 
@@ -56,6 +56,12 @@ func _create_action_button(
 	right: float,
 	bottom: float
 ) -> void:
+	var accent := Color("#ff982c")
+	if action == "dash":
+		accent = Color("#9852d1")
+	elif action == "cast_fire":
+		accent = Color("#e84c55")
+
 	_create_touch_button(
 		label,
 		action,
@@ -65,7 +71,8 @@ func _create_action_button(
 		top,
 		right,
 		bottom,
-		9
+		13,
+		accent
 	)
 
 
@@ -78,7 +85,8 @@ func _create_touch_button(
 	top: float,
 	right: float,
 	bottom: float,
-	font_size: int
+	font_size: int,
+	accent: Color
 ) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action)
@@ -97,23 +105,28 @@ func _create_touch_button(
 	button.focus_mode = Control.FOCUS_NONE
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.add_theme_font_size_override("font_size", font_size)
-	button.add_theme_color_override("font_color", Color("#fff4d6"))
-	button.add_theme_color_override("font_pressed_color", Color("#ffd34e"))
-	button.add_theme_stylebox_override("normal", _button_style(false))
-	button.add_theme_stylebox_override("pressed", _button_style(true))
-	button.add_theme_stylebox_override("hover", _button_style(false))
+	button.add_theme_color_override("font_color", Color("#fffaf0"))
+	button.add_theme_color_override("font_pressed_color", Color("#111a2b"))
+	button.add_theme_color_override("font_outline_color", Color("#111a2b"))
+	button.add_theme_constant_override("outline_size", 2)
+	button.add_theme_stylebox_override("normal", _button_style(false, accent))
+	button.add_theme_stylebox_override("pressed", _button_style(true, accent))
+	button.add_theme_stylebox_override("hover", _button_style(false, accent))
 	button.button_down.connect(_press_action.bind(action))
 	button.button_up.connect(_release_action.bind(action))
 	add_child(button)
 	action_buttons.append(button)
 
 
-func _button_style(pressed: bool) -> StyleBoxFlat:
+func _button_style(pressed: bool, accent: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.14, 0.25, 0.36, 0.88) if pressed else BUTTON_COLOR
-	style.border_color = Color("#ffd34e") if pressed else BUTTON_BORDER
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(0)
+	style.bg_color = Color("#ffd34e") if pressed else accent
+	style.border_color = BUTTON_BORDER if pressed else accent.lightened(0.4)
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(10)
+	style.shadow_color = Color("#10182acc")
+	style.shadow_size = 4
+	style.shadow_offset = Vector2(0, 3)
 	return style
 
 
