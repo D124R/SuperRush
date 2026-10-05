@@ -16,6 +16,8 @@ var coin_count: int = 0
 var game_over_overlay: ColorRect
 var pause_menu: Control
 var mobile_controls: Control
+var hud_root: MarginContainer
+var is_touch: bool = false
 var damage_flash: ColorRect
 var damage_flash_time_left := 0.0
 
@@ -28,9 +30,10 @@ func _ready() -> void:
 	player.connect("special_powers_changed", _on_special_powers_changed)
 	for coin in get_tree().get_nodes_in_group("coins"):
 		coin.connect("collected", _on_coin_collected)
+	is_touch = _detect_touch()
 	_create_hud()
 	_configure_player_camera()
-	_on_special_powers_changed(0, 0, 0)
+	_on_special_powers_changed(0, 0)
 
 
 func _process(delta: float) -> void:
@@ -83,18 +86,6 @@ func _create_hud() -> void:
 	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(canvas)
 
-	var pause_button := Button.new()
-	pause_button.text = "II"
-	pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	pause_button.offset_left = -42
-	pause_button.offset_top = 70
-	pause_button.offset_right = -8
-	pause_button.offset_bottom = 104
-	pause_button.add_theme_font_size_override("font_size", 12)
-	pause_button.pressed.connect(_toggle_pause)
-	pause_button.visible = DisplayServer.is_touchscreen_available()
-	canvas.add_child(pause_button)
-
 	damage_flash = ColorRect.new()
 	damage_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	damage_flash.color = Color(1.0, 0.08, 0.12, 0.0)
@@ -102,9 +93,35 @@ func _create_hud() -> void:
 	damage_flash.visible = false
 	canvas.add_child(damage_flash)
 
+	# Layout com containers: os paineis nao ficam mais presos a posicoes fixas.
+	# Se a tela for estreita demais, _fit_hud() reduz a escala do HUD inteiro.
+	hud_root = MarginContainer.new()
+	hud_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side in ["left", "top", "right", "bottom"]:
+		hud_root.add_theme_constant_override("margin_" + side, 8)
+	canvas.add_child(hud_root)
+
+	var top_row := HBoxContainer.new()
+	top_row.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	top_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top_row.add_theme_constant_override("separation", 8)
+	hud_root.add_child(top_row)
+
+	# Coluna esquerda: tempo + moedas, e logo abaixo os poderes
+	var left_column := VBoxContainer.new()
+	left_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	left_column.add_theme_constant_override("separation", 6)
+	top_row.add_child(left_column)
+
+	var stats_row := HBoxContainer.new()
+	stats_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stats_row.add_theme_constant_override("separation", 8)
+	left_column.add_child(stats_row)
+
 	var timer_panel := _create_hud_panel(
-		canvas,
-		Vector2(8, 8),
+		stats_row,
+		Vector2.ZERO,
 		Vector2(158, 50),
 		Color("#ffd34e")
 	)
@@ -126,8 +143,8 @@ func _create_hud() -> void:
 	timer_panel.add_child(timer_display)
 
 	var coin_panel := _create_hud_panel(
-		canvas,
-		Vector2(174, 8),
+		stats_row,
+		Vector2.ZERO,
 		Vector2(126, 50),
 		Color("#ffad45")
 	)
@@ -160,8 +177,8 @@ func _create_hud() -> void:
 	)
 
 	var power_panel := _create_hud_panel(
-		canvas,
-		Vector2(8, 64),
+		left_column,
+		Vector2.ZERO,
 		Vector2(292, 24),
 		Color("#58d8d0")
 	)
@@ -169,22 +186,23 @@ func _create_hud() -> void:
 		power_panel,
 		Vector2(8, 2),
 		Vector2(274, 18),
-		"CIMA + LADO: ESCALAR  |  F: FOGO",
+		_power_hint(),
 		8
 	)
 
+	# Coluna direita: vidas e botao de pausa
+	var right_column := VBoxContainer.new()
+	right_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	right_column.add_theme_constant_override("separation", 6)
+	top_row.add_child(right_column)
+
 	var life_meter_script: Script = load("res://src/life_meter.gd")
 	var life_panel := _create_hud_panel(
-		canvas,
+		right_column,
 		Vector2.ZERO,
 		Vector2(202, 52),
 		Color("#f15b66")
 	)
-	life_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	life_panel.offset_left = -210
-	life_panel.offset_top = 8
-	life_panel.offset_right = -8
-	life_panel.offset_bottom = 60
 
 	_create_hud_label(
 		life_panel,
@@ -202,6 +220,16 @@ func _create_hud() -> void:
 	life_meter.set_script(life_meter_script)
 	life_panel.add_child(life_meter)
 	life_meter.call("set_lives", player.get("lives"))
+
+	var pause_button := Button.new()
+	pause_button.text = "II"
+	pause_button.size_flags_horizontal = Control.SIZE_SHRINK_END
+	pause_button.custom_minimum_size = Vector2(48, 48) if is_touch else Vector2(34, 34)
+	pause_button.add_theme_font_size_override("font_size", 16 if is_touch else 12)
+	pause_button.focus_mode = Control.FOCUS_NONE
+	pause_button.pressed.connect(_toggle_pause)
+	pause_button.visible = is_touch
+	right_column.add_child(pause_button)
 
 	game_over_overlay = ColorRect.new()
 	game_over_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -227,6 +255,8 @@ func _create_hud() -> void:
 
 	var retry_button := Button.new()
 	retry_button.text = "TENTAR DE NOVO"
+	if is_touch:
+		retry_button.custom_minimum_size = Vector2(0, 44) # alvo de toque confortavel
 	retry_button.pressed.connect(_on_retry_pressed)
 	game_over_content.add_child(retry_button)
 
@@ -246,6 +276,35 @@ func _create_hud() -> void:
 	mobile_controls.set_script(mobile_controls_script)
 	canvas.add_child(mobile_controls)
 
+	get_viewport().size_changed.connect(_fit_hud)
+	_fit_hud.call_deferred()
+
+
+# Se a tela for mais estreita que o HUD, reduz a escala dele para tudo caber
+func _fit_hud() -> void:
+	if hud_root == null:
+		return
+	var view := get_viewport_rect().size
+	hud_root.scale = Vector2.ONE
+	var needed := hud_root.get_combined_minimum_size()
+	var fit := minf(1.0, view.x / maxf(needed.x, 1.0))
+	hud_root.scale = Vector2(fit, fit)
+	hud_root.position = Vector2.ZERO
+	hud_root.size = view / fit
+
+
+func _detect_touch() -> bool:
+	if OS.has_feature("web"):
+		if OS.has_feature("web_android") or OS.has_feature("web_ios"):
+			return true
+		var coarse = JavaScriptBridge.eval("window.matchMedia('(pointer: coarse)').matches", true)
+		return coarse == true
+	return DisplayServer.is_touchscreen_available()
+
+
+func _power_hint() -> String:
+	return "CIMA + LADO: ESCALAR  |  FOGO" if is_touch else "CIMA + LADO: ESCALAR  |  F: FOGO"
+
 
 func _toggle_pause() -> void:
 	if game_over_overlay.visible:
@@ -263,10 +322,7 @@ func _toggle_pause() -> void:
 func _resume_game() -> void:
 	get_tree().paused = false
 	pause_menu.visible = false
-	mobile_controls.call(
-		"set_touch_controls_enabled",
-		DisplayServer.is_touchscreen_available()
-	)
+	mobile_controls.call("set_touch_controls_enabled", is_touch)
 	get_node("/root/MusicManager").call("resume_music")
 
 
@@ -290,6 +346,7 @@ func _create_hud_panel(
 ) -> Panel:
 	var panel := Panel.new()
 	panel.position = at_position
+	panel.custom_minimum_size = panel_size
 	panel.size = panel_size
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
@@ -340,20 +397,14 @@ func _on_coin_collected() -> void:
 	coin_label.text = "x %03d" % coin_count
 
 
-func _on_special_powers_changed(
-	wall_climb_seconds: int,
-	fire_seconds: int,
-	super_jump_seconds: int
-) -> void:
+func _on_special_powers_changed(wall_climb_seconds: int, fire_seconds: int) -> void:
 	var active_powers: Array[String] = []
 	if wall_climb_seconds > 0:
 		active_powers.append("PAREDE %ds" % wall_climb_seconds)
 	if fire_seconds > 0:
 		active_powers.append("FOGO %ds" % fire_seconds)
-	if super_jump_seconds > 0:
-		active_powers.append("SUPER PULO %ds" % super_jump_seconds)
 	if active_powers.is_empty():
-		special_power_label.text = "CIMA + LADO: ESCALAR  |  F: FOGO  |  SUPER PULO"
+		special_power_label.text = _power_hint()
 	else:
 		special_power_label.text = "  ".join(active_powers)
 
